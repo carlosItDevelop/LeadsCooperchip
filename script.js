@@ -829,15 +829,21 @@ function initializeSalesChart() {
                 data: [12, 19, 15, 25, 22, 30],
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: true
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
+                    display: true,
+                    position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b'
+                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b',
+                        usePointStyle: true,
+                        padding: 20
                     }
                 }
             },
@@ -922,27 +928,35 @@ function initializeActivityChart() {
                 data: [45, 52, 38, 67, 59, 73],
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: false
             }, {
                 label: 'Reuniões',
                 data: [28, 35, 42, 31, 45, 38],
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: false
             }, {
                 label: 'Emails',
                 data: [85, 93, 78, 102, 89, 95],
                 borderColor: '#f59e0b',
                 backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: false
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
+                    display: true,
+                    position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b'
+                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b',
+                        usePointStyle: true,
+                        padding: 15
                     }
                 }
             },
@@ -1138,33 +1152,55 @@ async function addLog(logEntry) {
     try {
         // Ensure the log entry has the correct field names for the database
         const dbLogEntry = {
-            type: logEntry.type,
-            action: logEntry.title || logEntry.action,
-            details: logEntry.description || logEntry.details,
-            user_id: logEntry.user_id || logEntry.userId || 'system',
-            lead_id: logEntry.lead_id || logEntry.leadId
+            type: logEntry.type || 'activity',
+            action: logEntry.title || logEntry.action || 'Ação realizada',
+            details: logEntry.description || logEntry.details || '',
+            user_id: logEntry.user_id || logEntry.userId || 'Usuário Atual',
+            lead_id: logEntry.lead_id || logEntry.leadId || null
         };
+
+        console.log('Tentando salvar log:', dbLogEntry);
 
         const newLog = await fetchFromAPI('/logs', {
             method: 'POST',
             body: JSON.stringify(dbLogEntry)
         });
 
+        console.log('Log salvo com sucesso:', newLog);
+
         // Adicionar o log localmente para exibição imediata
         if (newLog) {
-            logs.unshift({
-                ...newLog,
-                timestamp: newLog.created_at,
+            const formattedLog = {
+                id: newLog.id,
+                type: newLog.type,
                 title: newLog.action,
                 description: newLog.details,
-                userId: newLog.user_id
-            });
+                timestamp: newLog.created_at,
+                userId: newLog.user_id,
+                leadId: newLog.lead_id
+            };
+            
+            logs.unshift(formattedLog);
             renderLogsTimeline();
         }
     } catch (error) {
         console.error('Erro ao adicionar log:', error);
-        showNotification('Erro ao salvar log', 'error');
-        showNotification('Erro ao salvar log', 'error');
+        
+        // Fallback: adicionar log localmente mesmo se falhar no servidor
+        const fallbackLog = {
+            id: Date.now(),
+            type: logEntry.type || 'activity',
+            title: logEntry.title || logEntry.action || 'Ação realizada',
+            description: logEntry.description || logEntry.details || '',
+            timestamp: new Date().toISOString(),
+            userId: logEntry.user_id || logEntry.userId || 'Usuário Atual',
+            leadId: logEntry.lead_id || logEntry.leadId || null
+        };
+        
+        logs.unshift(fallbackLog);
+        renderLogsTimeline();
+        
+        showNotification('Log salvo localmente (erro no servidor)', 'warning');
     }
 }
 

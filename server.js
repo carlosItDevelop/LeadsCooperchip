@@ -98,11 +98,14 @@ app.get('/api/logs', async (req, res) => {
 
 app.post('/api/logs', async (req, res) => {
     try {
+        console.log('Recebendo dados para log:', req.body);
         const newLog = await api.createLog(req.body);
+        console.log('Log criado com sucesso:', newLog);
         res.status(201).json(newLog);
     } catch (error) {
         console.error('Erro ao criar log:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Dados recebidos:', req.body);
+        res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
     }
 });
 
