@@ -35,7 +35,7 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
-app.put('/api/leads/:id(\\d+)', async (req, res) => {
+app.put('/api/leads/:id', async (req, res) => {
     try {
         const updatedLead = await api.updateLead(req.params.id, req.body);
         res.json(updatedLead);
@@ -45,7 +45,7 @@ app.put('/api/leads/:id(\\d+)', async (req, res) => {
     }
 });
 
-app.delete('/api/leads/:id(\\d+)', async (req, res) => {
+app.delete('/api/leads/:id', async (req, res) => {
     try {
         await api.deleteLead(req.params.id);
         res.status(204).send();
@@ -75,7 +75,7 @@ app.post('/api/tasks', async (req, res) => {
     }
 });
 
-app.put('/api/tasks/:id(\\d+)/status', async (req, res) => {
+app.put('/api/tasks/:id/status', async (req, res) => {
     try {
         const updatedTask = await api.updateTaskStatus(req.params.id, req.body.status);
         res.json(updatedTask);
