@@ -1496,17 +1496,14 @@ setInterval(() => {
     }
 }, 30000); // Check every 30 seconds
 
-function submitActivity() {
+async function submitActivity() {
     const form = document.getElementById('activityForm');
     const formData = new FormData(form);
     const leadId = parseInt(formData.get('leadId'));
     const lead = leads.find(l => l.id === leadId);
 
-    if (!lead) return;
-
     const activity = {
-        id: Date.now(),
-        leadId: leadId,
+        leadId: leadId || null,
         type: formData.get('type'),
         title: formData.get('title'),
         description: formData.get('description'),
@@ -1514,31 +1511,47 @@ function submitActivity() {
         createdAt: new Date().toISOString()
     };
 
-    // Add to calendar events (in real app, this would be stored)
-    if (calendar) {
-        calendar.addEvent({
-            title: activity.title,
-            start: activity.datetime,
-            backgroundColor: '#3b82f6',
-            extendedProps: {
-                leadId: leadId,
-                leadName: lead.name,
-                type: activity.type
-            }
+    try {
+        // Save activity to database
+        const savedActivity = await fetchFromAPI('/activities', {
+            method: 'POST',
+            body: JSON.stringify(activity)
         });
+
+        // Add to calendar events
+        if (calendar) {
+            calendar.addEvent({
+                id: savedActivity.id || Date.now(),
+                title: activity.title,
+                start: activity.datetime,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                extendedProps: {
+                    leadId: leadId,
+                    leadName: lead ? lead.name : 'Lead não especificado',
+                    type: activity.type,
+                    description: activity.description
+                }
+            });
+        }
+
+        // Add log entry
+        await addLog({
+            type: 'meeting',
+            title: 'Atividade agendada',
+            description: `${activity.title}${lead ? ` agendada para ${lead.name}` : ' agendada'}`,
+            user_id: 'Usuário Atual',
+            lead_id: leadId
+        });
+
+        closeModal('activityModal');
+        form.reset();
+        showNotification('Atividade agendada com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao salvar atividade:', error);
+        showNotification('Erro ao agendar atividade', 'error');
     }
-
-    addLog({
-        type: 'meeting',
-        title: 'Atividade agendada',
-        description: `${activity.title} agendada para ${lead.name}`,
-        user_id: 'Usuário Atual',
-        lead_id: leadId
-    });
-
-    closeModal('activityModal');
-    form.reset();
-    showNotification('Atividade agendada com sucesso!', 'success');
 }
 
 async function submitNote() {

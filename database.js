@@ -1,4 +1,3 @@
-
 const { Pool } = require('pg');
 
 // Configuração do pool de conexões
@@ -19,7 +18,7 @@ const pool = new Pool({
 async function initializeDatabase() {
     try {
         console.log('Conectando ao banco de dados...');
-        
+
         // Testar conexão
         await pool.query('SELECT NOW()');
         console.log('Conexão com banco de dados estabelecida com sucesso!');
@@ -165,7 +164,7 @@ async function insertSampleData() {
 
         for (const lead of sampleLeads) {
             await pool.query(`
-                INSERT INTO leads (name, company, email, phone, position, status, source, responsible, score, temperature, value, notes)
+                INSERT INTO leads (name, company, email, phone, position, source, status, responsible, score, temperature, value, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             `, [lead.name, lead.company, lead.email, lead.phone, lead.position, lead.status, lead.source, lead.responsible, lead.score, lead.temperature, lead.value, lead.notes]);
         }
