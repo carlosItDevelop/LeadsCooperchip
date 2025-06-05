@@ -244,6 +244,7 @@ async function fetchFromAPI(endpoint, options = {}) {
 
         if (!response.ok) {
             const errorText = await response.text();
+            console.error(`API Error: ${response.status} - ${errorText}`);
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
@@ -256,7 +257,12 @@ async function fetchFromAPI(endpoint, options = {}) {
         }
     } catch (error) {
         console.error('Erro na API:', error);
-        showNotification('Erro de conexão com o servidor. Verifique se o servidor está rodando.', 'error');
+        
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            showNotification('Erro de conexão: Servidor não encontrado. Verifique se o servidor Node.js está rodando na porta 5000.', 'error');
+        } else {
+            showNotification(`Erro de conexão com o servidor: ${error.message}`, 'error');
+        }
         throw error;
     }
 }
