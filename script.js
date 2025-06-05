@@ -322,7 +322,7 @@ function renderLeadsTable() {
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
             <td>${lead.responsible}</td>
-            <td>${formatDate(lead.lastContact)}</td>
+            <td>${formatDate(lead.last_contact || lead.lastContact)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">
@@ -1344,7 +1344,7 @@ function renderFilteredLeadsTable(filteredLeads) {
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
             <td>${lead.responsible}</td>
-            <td>${formatDate(lead.lastContact)}</td>
+            <td>${formatDate(lead.last_contact || lead.lastContact)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">
