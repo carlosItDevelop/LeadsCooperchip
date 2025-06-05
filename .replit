@@ -38,7 +38,7 @@ args = "node server.js"
 [[workflows.workflow]]
 name = "Full Stack Dev"
 author = 43493007
-mode = "sequential"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
