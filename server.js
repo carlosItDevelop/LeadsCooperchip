@@ -136,6 +136,7 @@ app.post('/api/notes', async (req, res) => {
     }
 });
 
+// Rota para buscar todas as notas
 app.get('/api/notes', async (req, res) => {
     try {
         const notes = await api.getAllNotes();

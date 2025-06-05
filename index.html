@@ -573,7 +573,12 @@
             </div>
             <div class="modal-body">
                 <form id="activityForm">
-                    <input type="hidden" name="leadId" id="activityLeadId">
+                    <div class="form-group">
+                        <label>Lead Relacionado</label>
+                        <select name="leadId" id="activityLeadId">
+                            <option value="">Selecione um lead (opcional)</option>
+                        </select>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Atividade *</label>

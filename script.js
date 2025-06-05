@@ -720,9 +720,32 @@ function initializeCalendar() {
         dateClick: function(info) {
             // Set default date/time for new event
             const clickedDate = new Date(info.date);
-            clickedDate.setHours(9, 0, 0, 0);
+            
+            // If it's today or future date, set to next available hour
+            const now = new Date();
+            if (clickedDate.toDateString() === now.toDateString()) {
+                // Same day - set to next hour
+                clickedDate.setHours(now.getHours() + 1, 0, 0, 0);
+            } else {
+                // Future day - set to 9 AM
+                clickedDate.setHours(9, 0, 0, 0);
+            }
 
+            // Reset form and set datetime
+            const form = document.getElementById('activityForm');
+            form.reset();
             document.getElementById('activityDateTime').value = clickedDate.toISOString().slice(0, 16);
+            
+            // Populate leads dropdown
+            const leadSelect = document.getElementById('activityLeadId');
+            leadSelect.innerHTML = '<option value="">Selecione um lead (opcional)</option>';
+            leads.forEach(lead => {
+                const option = document.createElement('option');
+                option.value = lead.id;
+                option.textContent = `${lead.name} - ${lead.company}`;
+                leadSelect.appendChild(option);
+            });
+            
             document.getElementById('activityModal').style.display = 'block';
         },
         eventDidMount: function(info) {
@@ -1190,7 +1213,30 @@ function openLeadDetails(leadId) {
 }
 
 function openEventModal() {
-    showNotification('Modal de evento seria aberto aqui', 'info');
+    // Reset form for new activity
+    const form = document.getElementById('activityForm');
+    form.reset();
+    document.getElementById('activityLeadId').value = '';
+
+    // Set default date/time to current time + 1 hour
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    document.getElementById('activityDateTime').value = now.toISOString().slice(0, 16);
+
+    // Populate leads dropdown if not already done
+    const leadSelect = document.getElementById('activityLeadId');
+    if (leadSelect && leadSelect.options.length <= 1) {
+        leadSelect.innerHTML = '<option value="">Selecione um lead (opcional)</option>';
+        leads.forEach(lead => {
+            const option = document.createElement('option');
+            option.value = lead.id;
+            option.textContent = `${lead.name} - ${lead.company}`;
+            leadSelect.appendChild(option);
+        });
+    }
+
+    // Open activity modal
+    document.getElementById('activityModal').style.display = 'block';
 }
 
 function openTaskModal() {
@@ -1499,18 +1545,31 @@ setInterval(() => {
 async function submitActivity() {
     const form = document.getElementById('activityForm');
     const formData = new FormData(form);
-    const leadId = parseInt(formData.get('leadId'));
-    const lead = leads.find(l => l.id === leadId);
+    
+    // Validate required fields
+    const title = formData.get('title');
+    const datetime = formData.get('datetime');
+    const type = formData.get('type');
+
+    if (!title || !datetime || !type) {
+        showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
+        return;
+    }
+
+    const leadId = formData.get('leadId') ? parseInt(formData.get('leadId')) : null;
+    const lead = leadId ? leads.find(l => l.id === leadId) : null;
 
     const activity = {
-        lead_id: leadId || null,
-        type: formData.get('type'),
-        title: formData.get('title'),
-        description: formData.get('description'),
-        datetime: formData.get('datetime')
+        lead_id: leadId,
+        type: type,
+        title: title,
+        description: formData.get('description') || '',
+        datetime: datetime
     };
 
     try {
+        showNotification('Salvando atividade...', 'info');
+
         // Save activity to database
         const savedActivity = await fetchFromAPI('/activities', {
             method: 'POST',
@@ -1527,7 +1586,7 @@ async function submitActivity() {
                 borderColor: '#2563eb',
                 extendedProps: {
                     leadId: leadId,
-                    leadName: lead ? lead.name : 'Lead não especificado',
+                    leadName: lead ? lead.name : 'Sem lead específico',
                     type: activity.type,
                     description: activity.description
                 }
@@ -1538,7 +1597,7 @@ async function submitActivity() {
         await addLog({
             type: 'meeting',
             title: 'Atividade agendada',
-            description: `${activity.title}${lead ? ` agendada para ${lead.name}` : ' agendada'}`,
+            description: `${activity.title}${lead ? ` para ${lead.name}` : ''}`,
             user_id: 'Usuário Atual',
             lead_id: leadId
         });
@@ -1549,7 +1608,7 @@ async function submitActivity() {
 
     } catch (error) {
         console.error('Erro ao salvar atividade:', error);
-        showNotification('Erro ao agendar atividade', 'error');
+        showNotification('Erro ao agendar atividade. Tente novamente.', 'error');
     }
 }
 
