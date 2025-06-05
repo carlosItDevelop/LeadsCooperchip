@@ -1525,36 +1525,56 @@ function submitActivity() {
     showNotification('Atividade agendada com sucesso!', 'success');
 }
 
-function submitNote() {
+async function submitNote() {
     const form = document.getElementById('noteForm');
     const formData = new FormData(form);
     const leadId = parseInt(formData.get('leadId'));
     const lead = leads.find(l => l.id === leadId);
 
-    if (!lead) return;
+    if (!lead) {
+        showNotification('Lead não encontrado', 'error');
+        return;
+    }
 
     const note = formData.get('note');
 
-    // Add note to lead (in real app, this would be stored in database)
-    if (lead.notes) {
-        lead.notes += '\n\n--- Nota ' + new Date().toLocaleString('pt-BR') + ' ---\n' + note;
-    } else {
-        lead.notes = note;
+    try {
+        // Save note to database
+        await fetchFromAPI('/notes', {
+            method: 'POST',
+            body: JSON.stringify({
+                lead_id: leadId,
+                content: note,
+                color: 'blue',
+                user_id: 'Usuário Atual'
+            })
+        });
+
+        // Update local lead notes
+        if (lead.notes) {
+            lead.notes += '\n\n--- Nota ' + new Date().toLocaleString('pt-BR') + ' ---\n' + note;
+        } else {
+            lead.notes = note;
+        }
+
+        await addLog({
+            type: 'note',
+            title: 'Nota adicionada',
+            description: `Nova nota adicionada para ${lead.name}`,
+            user_id: 'Usuário Atual',
+            lead_id: leadId
+        });
+
+        closeModal('noteModal');
+        form.reset();
+        renderLeadsTable();
+        renderKanbanBoard();
+        showNotification('Nota adicionada com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao salvar nota:', error);
+        showNotification('Erro ao salvar nota', 'error');
     }
-
-    addLog({
-        type: 'note',
-        title: 'Nota adicionada',
-        description: `Nova nota adicionada para ${lead.name}`,
-        user_id: 'Usuário Atual',
-        lead_id: leadId
-    });
-
-    closeModal('noteModal');
-    form.reset();
-    renderLeadsTable();
-    renderKanbanBoard();
-    showNotification('Nota adicionada com sucesso!', 'success');
 }
 
 function openLeadDetails(leadId) {
@@ -1763,6 +1783,8 @@ window.addNote = addNote;
 window.changeLogsPage = changeLogsPage;
 window.openTaskDetails = openTaskDetails;
 window.applyLogsFilters = applyLogsFilters;
+window.openNewCardModal = openNewCardModal;
+window.submitNewCard = submitNewCard;
 
 // Lead Notes Management
 async function loadAllLeadNotes() {
@@ -1803,7 +1825,7 @@ async function submitNewCard() {
         source: formData.get('source'),
         responsible: 'Usuário Atual',
         score: 50,
-        temperature: 'morno',
+        temperature: formData.get('temperature') || 'morno',
         value: parseFloat(formData.get('value')) || 0,
         notes: formData.get('notes'),
         lastContact: new Date().toISOString().split('T')[0]

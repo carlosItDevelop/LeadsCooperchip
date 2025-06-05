@@ -496,6 +496,7 @@ body {
   gap: 20px;
   overflow-x: auto;
   padding-bottom: 20px;
+  height: calc(100vh - 200px);
 }
 
 .kanban-column {
@@ -504,6 +505,9 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .column-header {
@@ -542,6 +546,9 @@ body {
 .column-cards {
   padding: 16px;
   min-height: 200px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
 }
 
 .kanban-card {
