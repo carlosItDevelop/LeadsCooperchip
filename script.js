@@ -139,8 +139,21 @@ function initializeApp() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
 
-    // Show dashboard by default
-    showTab('dashboard');
+    // Handle initial URL hash
+    const initialTab = window.location.hash.slice(1) || 'dashboard';
+    showTab(initialTab);
+
+    // Listen for hash changes (browser back/forward)
+    window.addEventListener('hashchange', () => {
+        const tab = window.location.hash.slice(1) || 'dashboard';
+        showTab(tab);
+        
+        // Update active nav
+        const navTab = document.querySelector(`[data-tab="${tab}"]`);
+        if (navTab) {
+            updateActiveNav(navTab);
+        }
+    });
 
     // Initialize service worker for notifications
     if ('serviceWorker' in navigator) {
@@ -151,20 +164,21 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('[data-tab]').forEach(item => {
-        item.addEventListener('click', (e) => {
+    // Navigation - usar delegação de eventos para garantir que funcione
+    document.addEventListener('click', (e) => {
+        const navTab = e.target.closest('[data-tab]');
+        if (navTab) {
             e.preventDefault();
             e.stopPropagation();
             
-            const tab = e.currentTarget.getAttribute('data-tab');
+            const tab = navTab.getAttribute('data-tab');
             console.log('Clique em tab:', tab);
             
             if (tab) {
                 showTab(tab);
-                updateActiveNav(e.currentTarget);
+                updateActiveNav(navTab);
             }
-        });
+        }
     });
 
     // Task filters
@@ -329,6 +343,9 @@ function setTheme(theme) {
 function showTab(tabName) {
     console.log('Navegando para tab:', tabName);
     
+    // Remove # se existir no nome da tab
+    tabName = tabName.replace('#', '');
+    
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -339,8 +356,21 @@ function showTab(tabName) {
     if (targetTab) {
         targetTab.classList.add('active');
         console.log('Tab ativada:', tabName);
+        
+        // Update URL without causing page reload
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', `#${tabName}`);
+        }
     } else {
         console.error('Tab não encontrada:', tabName);
+        // Fallback para dashboard se tab não existir
+        const dashboardTab = document.getElementById('dashboard');
+        if (dashboardTab) {
+            dashboardTab.classList.add('active');
+            if (window.history && window.history.pushState) {
+                window.history.pushState(null, '', '#dashboard');
+            }
+        }
     }
 
     // Refresh content based on tab
@@ -369,12 +399,21 @@ function showTab(tabName) {
 }
 
 function updateActiveNav(activeItem) {
+    // Remove active class from all nav tabs
     document.querySelectorAll('.nav-tab').forEach(item => {
         item.classList.remove('active');
     });
+    
     if (activeItem) {
         activeItem.classList.add('active');
         console.log('Nav item ativado:', activeItem.getAttribute('data-tab'));
+    } else {
+        // Se não há item ativo especificado, ativar com base no hash atual
+        const currentTab = window.location.hash.slice(1) || 'dashboard';
+        const navTab = document.querySelector(`[data-tab="${currentTab}"]`);
+        if (navTab) {
+            navTab.classList.add('active');
+        }
     }
 }
 

@@ -129,6 +129,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Handle SPA routing - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+    // Não interferir com rotas da API
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Endpoint não encontrado' });
+    }
+    
+    // Para todas as outras rotas, servir o index.html (SPA)
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Acesse: http://localhost:${PORT}`);
