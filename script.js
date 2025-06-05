@@ -1287,13 +1287,43 @@ function getLogIcon(type) {
 }
 
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    if (!dateString || dateString === 'null' || dateString === 'undefined') {
+        return 'Não informado';
+    }
+    
+    try {
+        const date = new Date(dateString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            return 'Data inválida';
+        }
+        
+        return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+        console.error('Erro ao formatar data:', error, 'Data recebida:', dateString);
+        return 'Data inválida';
+    }
 }
 
 function formatDateTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR');
+    if (!dateString || dateString === 'null' || dateString === 'undefined') {
+        return 'Não informado';
+    }
+    
+    try {
+        const date = new Date(dateString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            return 'Data inválida';
+        }
+        
+        return date.toLocaleString('pt-BR');
+    } catch (error) {
+        console.error('Erro ao formatar data/hora:', error, 'Data recebida:', dateString);
+        return 'Data inválida';
+    }
 }
 
 function formatCurrency(value) {
