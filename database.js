@@ -361,6 +361,28 @@ const api = {
         return result.rows[0];
     },
 
+    async updateActivity(id, activityData) {
+        const { leadId, lead_id, type, title, description, datetime } = activityData;
+        const finalLeadId = leadId || lead_id;
+
+        const result = await pool.query(`
+            UPDATE activities 
+            SET lead_id = $1, type = $2, title = $3, description = $4, datetime = $5
+            WHERE id = $6
+            RETURNING *
+        `, [finalLeadId, type, title, description, datetime, id]);
+
+        if (result.rows.length === 0) {
+            throw new Error('Atividade não encontrada');
+        }
+
+        return result.rows[0];
+    },
+
+    async deleteActivity(id) {
+        await pool.query('DELETE FROM activities WHERE id = $1', [id]);
+    },
+
     // Notes
     async getNotesByLeadId(leadId) {
         const result = await pool.query('SELECT * FROM notes WHERE lead_id = $1 ORDER BY created_at DESC', [leadId]);

@@ -697,32 +697,7 @@ function initializeCalendar() {
         },
         eventClick: function(info) {
             const event = info.event;
-            const props = event.extendedProps;
-
-            Swal.fire({
-                title: event.title,
-                html: `
-                    <div style="text-align: left;">
-                        <p><strong>Início:</strong> ${event.start.toLocaleString('pt-BR')}</p>
-                        ${event.end ? `<p><strong>Término:</strong> ${event.end.toLocaleString('pt-BR')}</p>` : ''}
-                        <p><strong>Tipo:</strong> ${props.type || 'Atividade'}</p>
-                        ${props.description ? `<p><strong>Descrição:</strong> ${props.description}</p>` : ''}
-                        ${props.leadId ? `<p><strong>Lead ID:</strong> ${props.leadId}</p>` : ''}
-                    </div>
-                `,
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Editar',
-                cancelButtonText: 'Fechar',
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#6b7280',
-                background: currentTheme === 'dark' ? '#1e293b' : '#ffffff',
-                color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    showNotification('Funcionalidade de edição em desenvolvimento', 'info');
-                }
-            });
+            openActivityEditModal(event);
         },
         dateClick: function(info) {
             // Set default date/time for new event
@@ -1223,7 +1198,12 @@ function openEventModal() {
     // Reset form for new activity
     const form = document.getElementById('activityForm');
     form.reset();
-    document.getElementById('activityLeadId').value = '';
+    
+    // Remove activity ID if exists (for new activities)
+    const activityIdField = document.getElementById('activityId');
+    if (activityIdField) {
+        activityIdField.value = '';
+    }
 
     // Set default date/time to current time + 1 hour
     const now = new Date();
@@ -1240,6 +1220,13 @@ function openEventModal() {
             option.textContent = `${lead.name} - ${lead.company}`;
             leadSelect.appendChild(option);
         });
+    }
+
+    // Reset modal title and hide delete button
+    document.getElementById('activityModalTitle').textContent = 'Agendar Atividade';
+    const deleteButton = document.getElementById('deleteActivityBtn');
+    if (deleteButton) {
+        deleteButton.style.display = 'none';
     }
 
     // Open activity modal
@@ -1557,6 +1544,7 @@ async function submitActivity() {
     const title = formData.get('title');
     const datetime = formData.get('datetime');
     const type = formData.get('type');
+    const activityId = formData.get('activityId');
 
     if (!title || !datetime || !type) {
         showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
@@ -1575,35 +1563,163 @@ async function submitActivity() {
     };
 
     try {
-        showNotification('Salvando atividade...', 'info');
+        showNotification(activityId ? 'Atualizando atividade...' : 'Salvando atividade...', 'info');
 
-        // Save activity to database
-        const savedActivity = await fetchFromAPI('/activities', {
-            method: 'POST',
-            body: JSON.stringify(activity)
-        });
+        if (activityId) {
+            // Update existing activity
+            await fetchFromAPI(`/activities/${activityId}`, {
+                method: 'PUT',
+                body: JSON.stringify(activity)
+            });
+
+            await addLog({
+                type: 'meeting',
+                title: 'Atividade atualizada',
+                description: `${activity.title}${lead ? ` para ${lead.name}` : ''} foi editada`,
+                user_id: 'Usuário Atual',
+                lead_id: leadId
+            });
+
+            showNotification('Atividade atualizada com sucesso!', 'success');
+        } else {
+            // Create new activity
+            await fetchFromAPI('/activities', {
+                method: 'POST',
+                body: JSON.stringify(activity)
+            });
+
+            await addLog({
+                type: 'meeting',
+                title: 'Atividade agendada',
+                description: `${activity.title}${lead ? ` para ${lead.name}` : ''}`,
+                user_id: 'Usuário Atual',
+                lead_id: leadId
+            });
+
+            showNotification('Atividade agendada com sucesso!', 'success');
+        }
 
         // Reload calendar events from database
         if (calendar) {
             calendar.refetchEvents();
         }
 
-        // Add log entry
-        await addLog({
-            type: 'meeting',
-            title: 'Atividade agendada',
-            description: `${activity.title}${lead ? ` para ${lead.name}` : ''}`,
-            user_id: 'Usuário Atual',
-            lead_id: leadId
-        });
-
         closeModal('activityModal');
         form.reset();
-        showNotification('Atividade agendada com sucesso!', 'success');
 
     } catch (error) {
         console.error('Erro ao salvar atividade:', error);
-        showNotification('Erro ao agendar atividade. Tente novamente.', 'error');
+        showNotification('Erro ao salvar atividade. Tente novamente.', 'error');
+    }
+}
+
+function openActivityEditModal(event) {
+    const props = event.extendedProps;
+    
+    // Reset form
+    const form = document.getElementById('activityForm');
+    form.reset();
+    
+    // Populate form with event data
+    document.getElementById('activityTitle').value = event.title;
+    document.getElementById('activityType').value = props.type || 'meeting';
+    document.getElementById('activityDescription').value = props.description || '';
+    document.getElementById('activityLeadId').value = props.leadId || '';
+    
+    // Convert event start to local datetime format
+    const startDate = new Date(event.start);
+    const localDatetime = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+    document.getElementById('activityDateTime').value = localDatetime.toISOString().slice(0, 16);
+    
+    // Add hidden field for activity ID
+    let activityIdField = document.getElementById('activityId');
+    if (!activityIdField) {
+        activityIdField = document.createElement('input');
+        activityIdField.type = 'hidden';
+        activityIdField.name = 'activityId';
+        activityIdField.id = 'activityId';
+        form.appendChild(activityIdField);
+    }
+    activityIdField.value = event.id;
+    
+    // Populate leads dropdown if not already done
+    const leadSelect = document.getElementById('activityLeadId');
+    if (leadSelect && leadSelect.options.length <= 1) {
+        leadSelect.innerHTML = '<option value="">Selecione um lead (opcional)</option>';
+        leads.forEach(lead => {
+            const option = document.createElement('option');
+            option.value = lead.id;
+            option.textContent = `${lead.name} - ${lead.company}`;
+            leadSelect.appendChild(option);
+        });
+    }
+    
+    // Set selected lead if available
+    if (props.leadId) {
+        leadSelect.value = props.leadId;
+    }
+    
+    // Change modal title and add delete button
+    document.getElementById('activityModalTitle').textContent = 'Editar Atividade';
+    
+    // Add delete button to modal if not exists
+    let deleteButton = document.getElementById('deleteActivityBtn');
+    if (!deleteButton) {
+        deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn btn-danger';
+        deleteButton.id = 'deleteActivityBtn';
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i> Excluir';
+        deleteButton.onclick = () => deleteActivity(event.id);
+        
+        const modalFooter = document.querySelector('#activityModal .modal-footer');
+        modalFooter.insertBefore(deleteButton, modalFooter.firstChild);
+    }
+    deleteButton.style.display = 'inline-block';
+    
+    // Open modal
+    document.getElementById('activityModal').style.display = 'block';
+}
+
+async function deleteActivity(activityId) {
+    const result = await Swal.fire({
+        title: 'Confirmar Exclusão',
+        text: 'Tem certeza que deseja excluir esta atividade?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar',
+        background: currentTheme === 'dark' ? '#1e293b' : '#ffffff',
+        color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await fetchFromAPI(`/activities/${activityId}`, {
+                method: 'DELETE'
+            });
+
+            await addLog({
+                type: 'meeting',
+                title: 'Atividade excluída',
+                description: 'Uma atividade foi removida do calendário',
+                user_id: 'Usuário Atual'
+            });
+
+            // Reload calendar events
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+
+            closeModal('activityModal');
+            showNotification('Atividade excluída com sucesso!', 'success');
+
+        } catch (error) {
+            console.error('Erro ao excluir atividade:', error);
+            showNotification('Erro ao excluir atividade', 'error');
+        }
     }
 }
 
@@ -2112,6 +2228,8 @@ window.openNewCardModal = openNewCardModal;
 window.submitNewCard = submitNewCard;
 window.openLogDetails = openLogDetails;
 window.openRecentEventDetails = openRecentEventDetails;
+window.openActivityEditModal = openActivityEditModal;
+window.deleteActivity = deleteActivity;
 
 // Lead Notes Management
 async function loadAllLeadNotes() {

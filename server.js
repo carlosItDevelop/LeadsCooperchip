@@ -126,6 +126,26 @@ app.post('/api/activities', async (req, res) => {
     }
 });
 
+app.put('/api/activities/:id', async (req, res) => {
+    try {
+        const updatedActivity = await api.updateActivity(req.params.id, req.body);
+        res.json(updatedActivity);
+    } catch (error) {
+        console.error('Erro ao atualizar atividade:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+app.delete('/api/activities/:id', async (req, res) => {
+    try {
+        await api.deleteActivity(req.params.id);
+        res.status(204).send();
+    } catch (error) {
+        console.error('Erro ao deletar atividade:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 app.get('/api/leads/:id/notes', async (req, res) => {
     try {
         const notes = await api.getNotesByLeadId(req.params.id);
