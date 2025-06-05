@@ -337,6 +337,16 @@ const api = {
     },
 
     // Activities
+    async getActivities() {
+        const result = await pool.query(`
+            SELECT a.*, l.name as lead_name, l.company as lead_company 
+            FROM activities a 
+            LEFT JOIN leads l ON a.lead_id = l.id 
+            ORDER BY a.datetime ASC
+        `);
+        return result.rows;
+    },
+
     async createActivity(activityData) {
         const { leadId, lead_id, type, title, description, datetime, scheduled_date } = activityData;
         const finalLeadId = leadId || lead_id;

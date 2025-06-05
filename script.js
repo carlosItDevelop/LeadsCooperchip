@@ -125,6 +125,31 @@ const sampleLogs = [
     }
 ];
 
+// Event Color Functions
+function getEventColor(type) {
+    const colors = {
+        meeting: '#3b82f6',
+        call: '#10b981',
+        demo: '#f59e0b',
+        email: '#8b5cf6',
+        follow_up: '#ef4444',
+        presentation: '#06b6d4'
+    };
+    return colors[type] || '#3b82f6';
+}
+
+function getEventBorderColor(type) {
+    const colors = {
+        meeting: '#2563eb',
+        call: '#059669',
+        demo: '#d97706',
+        email: '#7c3aed',
+        follow_up: '#dc2626',
+        presentation: '#0891b2'
+    };
+    return colors[type] || '#2563eb';
+}
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -647,47 +672,29 @@ function initializeCalendar() {
         eventColor: '#3b82f6',
         eventBorderColor: '#3b82f6',
         eventTextColor: '#ffffff',
-        events: [
-            {
-                id: '1',
-                title: 'Reunião com João Silva',
-                start: '2024-01-20T14:00:00',
-                end: '2024-01-20T15:00:00',
-                backgroundColor: '#3b82f6',
-                borderColor: '#2563eb',
-                extendedProps: {
-                    leadId: 1,
-                    type: 'meeting',
-                    description: 'Apresentação de proposta comercial'
-                }
-            },
-            {
-                id: '2',
-                title: 'Follow-up Ana Costa',
-                start: '2024-01-22T10:00:00',
-                end: '2024-01-22T10:30:00',
-                backgroundColor: '#10b981',
-                borderColor: '#059669',
-                extendedProps: {
-                    leadId: 2,
-                    type: 'call',
-                    description: 'Verificar status da proposta'
-                }
-            },
-            {
-                id: '3',
-                title: 'Demonstração Tech Corp',
-                start: '2024-01-25T16:00:00',
-                end: '2024-01-25T17:30:00',
-                backgroundColor: '#f59e0b',
-                borderColor: '#d97706',
-                extendedProps: {
-                    leadId: 1,
-                    type: 'demo',
-                    description: 'Demonstração da plataforma'
-                }
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const activities = await fetchFromAPI('/activities');
+                const events = activities.map(activity => ({
+                    id: activity.id,
+                    title: activity.title,
+                    start: activity.datetime,
+                    backgroundColor: getEventColor(activity.type),
+                    borderColor: getEventBorderColor(activity.type),
+                    extendedProps: {
+                        leadId: activity.lead_id,
+                        leadName: activity.lead_name,
+                        leadCompany: activity.lead_company,
+                        type: activity.type,
+                        description: activity.description
+                    }
+                }));
+                successCallback(events);
+            } catch (error) {
+                console.error('Erro ao carregar eventos:', error);
+                failureCallback(error);
             }
-        ],
+        },
         eventClick: function(info) {
             const event = info.event;
             const props = event.extendedProps;
@@ -1576,21 +1583,9 @@ async function submitActivity() {
             body: JSON.stringify(activity)
         });
 
-        // Add to calendar events
+        // Reload calendar events from database
         if (calendar) {
-            calendar.addEvent({
-                id: savedActivity.id || Date.now(),
-                title: activity.title,
-                start: activity.datetime,
-                backgroundColor: '#3b82f6',
-                borderColor: '#2563eb',
-                extendedProps: {
-                    leadId: leadId,
-                    leadName: lead ? lead.name : 'Sem lead específico',
-                    type: activity.type,
-                    description: activity.description
-                }
-            });
+            calendar.refetchEvents();
         }
 
         // Add log entry

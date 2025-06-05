@@ -106,6 +106,16 @@ app.post('/api/logs', async (req, res) => {
     }
 });
 
+app.get('/api/activities', async (req, res) => {
+    try {
+        const activities = await api.getActivities();
+        res.json(activities);
+    } catch (error) {
+        console.error('Erro ao buscar atividades:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 app.post('/api/activities', async (req, res) => {
     try {
         const newActivity = await api.createActivity(req.body);
