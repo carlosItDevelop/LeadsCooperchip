@@ -19,6 +19,10 @@ externalPort = 5000
 localPort = 5173
 externalPort = 80
 
+[[ports]]
+localPort = 5174
+externalPort = 3000
+
 [workflows]
 runButton = "Start Server"
 
@@ -34,7 +38,7 @@ args = "node server.js"
 [[workflows.workflow]]
 name = "Full Stack Dev"
 author = 43493007
-mode = "parallel"
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
