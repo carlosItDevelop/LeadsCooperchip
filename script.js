@@ -357,8 +357,8 @@ function renderLeadsTable() {
             <td>${lead.email}</td>
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
-            <td>${lead.responsible}</td>
-            <td>${formatDate(lead.lastContact)}</td>
+            <td>${lead.assigned_to || lead.responsible || 'Não atribuído'}</td>
+            <td>${formatDate(lead.lastContact || lead.created_at)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">
@@ -913,7 +913,8 @@ function initializeConversionChart() {
     const ctx = document.getElementById('conversionChart');
     if (!ctx) return;
 
-    charts.conversion = new Chart(ctx, {
+    ```text
+charts.conversion = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Maria Santos', 'Carlos Oliveira', 'Ana Silva', 'Pedro Costa'],
@@ -1453,8 +1454,8 @@ function renderFilteredLeadsTable(filteredLeads) {
             <td>${lead.email}</td>
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
-            <td>${lead.responsible}</td>
-            <td>${formatDate(lead.lastContact)}</td>
+            <td>${lead.assigned_to || lead.responsible || 'Não atribuído'}</td>
+            <td>${formatDate(lead.lastContact || lead.created_at)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">

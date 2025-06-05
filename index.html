@@ -182,18 +182,22 @@
             <!-- Filtros -->
             <div class="filters">
                 <input type="text" placeholder="Buscar leads..." class="search-input">
-                <select class="filter-select">
+                <select class="filter-select" id="statusFilter">
                     <option value="">Todos os Status</option>
                     <option value="novo">Novo</option>
                     <option value="contato">Primeiro Contato</option>
                     <option value="qualificado">Qualificado</option>
                     <option value="proposta">Proposta</option>
+                    <option value="negociacao">Negociação</option>
+                    <option value="ganho">Ganho</option>
+                    <option value="perdido">Perdido</option>
                 </select>
-                <select class="filter-select">
+                <select class="filter-select" id="responsibleFilter">
                     <option value="">Todos Vendedores</option>
-                    <option value="joao">João</option>
+                    <option value="joão">João</option>
                     <option value="maria">Maria</option>
                     <option value="carlos">Carlos</option>
+                    <option value="system">System</option>
                 </select>
             </div>
 
