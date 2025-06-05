@@ -155,9 +155,15 @@ function setupEventListeners() {
     document.querySelectorAll('[data-tab]').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            
             const tab = e.currentTarget.getAttribute('data-tab');
-            showTab(tab);
-            updateActiveNav(e.currentTarget);
+            console.log('Clique em tab:', tab);
+            
+            if (tab) {
+                showTab(tab);
+                updateActiveNav(e.currentTarget);
+            }
         });
     });
 
@@ -177,10 +183,15 @@ function setupEventListeners() {
     }
 
     // Filter functionality for leads
-    const filterSelects = document.querySelectorAll('.filters .filter-select');
-    filterSelects.forEach(select => {
-        select.addEventListener('change', filterLeads);
-    });
+    const statusFilter = document.getElementById('statusFilter');
+    const responsibleFilter = document.getElementById('responsibleFilter');
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterLeads);
+    }
+    if (responsibleFilter) {
+        responsibleFilter.addEventListener('change', filterLeads);
+    }
 
     // Logs filters
     const logsFilterBtn = document.querySelector('.logs-filters .btn');
@@ -316,6 +327,8 @@ function setTheme(theme) {
 
 // Navigation
 function showTab(tabName) {
+    console.log('Navegando para tab:', tabName);
+    
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -325,15 +338,32 @@ function showTab(tabName) {
     const targetTab = document.getElementById(tabName);
     if (targetTab) {
         targetTab.classList.add('active');
+        console.log('Tab ativada:', tabName);
+    } else {
+        console.error('Tab não encontrada:', tabName);
     }
 
     // Refresh content based on tab
     switch(tabName) {
         case 'calendar':
-            if (calendar) calendar.render();
+            if (calendar) {
+                setTimeout(() => calendar.render(), 100);
+            }
             break;
         case 'reports':
-            updateCharts();
+            setTimeout(() => updateCharts(), 100);
+            break;
+        case 'leads-list':
+            renderLeadsTable();
+            break;
+        case 'kanban':
+            renderKanbanBoard();
+            break;
+        case 'tasks':
+            renderTasksList();
+            break;
+        case 'logs':
+            renderLogsTimeline();
             break;
     }
 }
@@ -342,7 +372,10 @@ function updateActiveNav(activeItem) {
     document.querySelectorAll('.nav-tab').forEach(item => {
         item.classList.remove('active');
     });
-    activeItem.classList.add('active');
+    if (activeItem) {
+        activeItem.classList.add('active');
+        console.log('Nav item ativado:', activeItem.getAttribute('data-tab'));
+    }
 }
 
 // Leads Management
@@ -1416,8 +1449,8 @@ function formatCurrency(value) {
 
 function filterLeads() {
     const searchInput = document.querySelector('.search-input');
-    const statusFilter = document.querySelector('.filters .filter-select:nth-child(2)');
-    const responsibleFilter = document.querySelector('.filters .filter-select:nth-child(3)');
+    const statusFilter = document.getElementById('statusFilter');
+    const responsibleFilter = document.getElementById('responsibleFilter');
 
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     const selectedStatus = statusFilter ? statusFilter.value : '';
@@ -1434,8 +1467,9 @@ function filterLeads() {
         const matchesStatus = !selectedStatus || lead.status === selectedStatus;
 
         // Responsible filter
+        const responsibleName = lead.assigned_to || lead.responsible || '';
         const matchesResponsible = !selectedResponsible || 
-            lead.responsible.toLowerCase().includes(selectedResponsible.toLowerCase());
+            responsibleName.toLowerCase().includes(selectedResponsible.toLowerCase());
 
         return matchesSearch && matchesStatus && matchesResponsible;
     });
