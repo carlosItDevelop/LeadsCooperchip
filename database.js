@@ -85,6 +85,17 @@ async function initializeDatabase() {
             )
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS notes (
+                id SERIAL PRIMARY KEY,
+                lead_id INTEGER REFERENCES leads(id) ON DELETE CASCADE,
+                content TEXT NOT NULL,
+                color VARCHAR(20) DEFAULT 'blue',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_id VARCHAR(255)
+            )
+        `);
+
         console.log('Banco de dados inicializado com sucesso!');
 
         // Inserir dados de exemplo se não existirem
@@ -337,6 +348,28 @@ const api = {
         `, [lead_id, type, title, description, scheduled_date]);
 
         return result.rows[0];
+    },
+
+    // Notes
+    async getNotesByLeadId(leadId) {
+        const result = await pool.query('SELECT * FROM notes WHERE lead_id = $1 ORDER BY created_at DESC', [leadId]);
+        return result.rows;
+    },
+
+    async createNote(noteData) {
+        const { lead_id, content, color, user_id } = noteData;
+
+        const result = await pool.query(`
+            INSERT INTO notes (lead_id, content, color, user_id)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+        `, [lead_id, content, color || 'blue', user_id]);
+
+        return result.rows[0];
+    },
+
+    async deleteNote(id) {
+        await pool.query('DELETE FROM notes WHERE id = $1', [id]);
     }
 };
 

@@ -514,6 +514,12 @@ body {
   align-items: center;
 }
 
+.column-actions {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
 .column-header h3 {
   font-size: 16px;
   font-weight: 600;
@@ -595,6 +601,47 @@ body {
   display: flex;
   gap: 8px;
   margin-top: 12px;
+}
+
+.card-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.note-tag {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.note-tag:hover {
+  opacity: 0.8;
+}
+
+.note-tag.blue {
+  background-color: #3b82f6;
+}
+
+.note-tag.green {
+  background-color: #10b981;
+}
+
+.note-tag.yellow {
+  background-color: #f59e0b;
+}
+
+.note-tag.red {
+  background-color: #ef4444;
+}
+
+.note-tag.purple {
+  background-color: #8b5cf6;
 }
 
 .card-actions button {

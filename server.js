@@ -116,6 +116,36 @@ app.post('/api/activities', async (req, res) => {
     }
 });
 
+app.get('/api/leads/:id/notes', async (req, res) => {
+    try {
+        const notes = await api.getNotesByLeadId(req.params.id);
+        res.json(notes);
+    } catch (error) {
+        console.error('Erro ao buscar notes:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+app.post('/api/notes', async (req, res) => {
+    try {
+        const newNote = await api.createNote(req.body);
+        res.status(201).json(newNote);
+    } catch (error) {
+        console.error('Erro ao criar note:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+    try {
+        await api.deleteNote(req.params.id);
+        res.status(204).send();
+    } catch (error) {
+        console.error('Erro ao deletar note:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });

@@ -211,6 +211,7 @@ async function loadSampleData() {
         tasks = await fetchFromAPI('/tasks');
         logs = await fetchFromAPI('/logs');
 
+        await loadAllLeadNotes();
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
@@ -224,6 +225,7 @@ async function loadSampleData() {
         tasks = sampleTasks;
         logs = sampleLogs;
 
+        await loadAllLeadNotes();
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
@@ -917,7 +919,7 @@ function initializeActivityChart() {
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4
-            }, {
+                            }, {
                 label: 'Reuniões',
                 data: [28, 35, 42, 31, 45, 38],
                 borderColor: '#10b981',
@@ -1314,15 +1316,15 @@ function formatDate(dateString) {
     if (!dateString || dateString === 'null' || dateString === 'undefined') {
         return 'Não informado';
     }
-    
+
     try {
         const date = new Date(dateString);
-        
+
         // Check if date is valid
         if (isNaN(date.getTime())) {
             return 'Data inválida';
         }
-        
+
         return date.toLocaleDateString('pt-BR');
     } catch (error) {
         console.error('Erro ao formatar data:', error, 'Data recebida:', dateString);
@@ -1334,15 +1336,15 @@ function formatDateTime(dateString) {
     if (!dateString || dateString === 'null' || dateString === 'undefined') {
         return 'Não informado';
     }
-    
+
     try {
         const date = new Date(dateString);
-        
+
         // Check if date is valid
         if (isNaN(date.getTime())) {
             return 'Data inválida';
         }
-        
+
         return date.toLocaleString('pt-BR');
     } catch (error) {
         console.error('Erro ao formatar data/hora:', error, 'Data recebida:', dateString);
@@ -1761,3 +1763,81 @@ window.addNote = addNote;
 window.changeLogsPage = changeLogsPage;
 window.openTaskDetails = openTaskDetails;
 window.applyLogsFilters = applyLogsFilters;
+
+// Lead Notes Management
+async function loadAllLeadNotes() {
+    try {
+        // Fetch lead notes from the API
+        const notes = await fetchFromAPI('/notes');
+
+        // Iterate through each lead and assign its notes
+        leads.forEach(lead => {
+            lead.notes = notes.filter(note => note.leadId === lead.id).map(note => note.content).join('\n\n---\n\n') || '';
+        });
+    } catch (error) {
+        console.error('Erro ao carregar notas dos leads:', error);
+        showNotification('Erro ao carregar notas dos leads', 'error');
+    }
+}
+
+// New Card Functionality
+function openNewCardModal(status) {
+    // Set the default status for the new card
+    document.getElementById('newCardStatus').value = status;
+
+    // Open the modal
+    document.getElementById('newCardModal').style.display = 'block';
+}
+
+async function submitNewCard() {
+    const form = document.getElementById('newCardForm');
+    const formData = new FormData(form);
+
+    const newLeadData = {
+        name: formData.get('name'),
+        company: formData.get('company'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        position: formData.get('position'),
+        status: formData.get('status'),
+        source: formData.get('source'),
+        responsible: 'Usuário Atual',
+        score: 50,
+        temperature: 'morno',
+        value: parseFloat(formData.get('value')) || 0,
+        notes: formData.get('notes'),
+        lastContact: new Date().toISOString().split('T')[0]
+    };
+
+    try {
+        // Create new lead
+        const newLead = await fetchFromAPI('/leads', {
+            method: 'POST',
+            body: JSON.stringify(newLeadData)
+        });
+
+        // Add to local array
+        leads.push(newLead);
+
+        await addLog({
+            type: 'lead',
+            title: 'Novo lead criado',
+            description: `Lead ${newLeadData.name} foi adicionado ao sistema via Kanban`,
+            user_id: 'Usuário Atual',
+            lead_id: newLead.id
+        });
+
+        showNotification('Lead criado com sucesso!', 'success');
+
+        // Re-render components
+        renderLeadsTable();
+        renderKanbanBoard();
+
+        closeModal('newCardModal');
+        form.reset();
+
+    } catch (error) {
+        console.error('Erro ao salvar lead:', error);
+        showNotification('Erro ao salvar lead', 'error');
+    }
+}
