@@ -326,7 +326,82 @@
                 </button>
             </div>
 
-            <div id="calendar-widget"></div>
+            <div class="calendar-layout">
+                <div class="calendar-sidebar">
+                    <!-- Eventos do Pipeline -->
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-stream"></i> Pipeline Status</h3>
+                        <div class="pipeline-events">
+                            <div class="pipeline-event" data-status="novo">
+                                <div class="pipeline-icon novo">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Novo</span>
+                                    <span class="pipeline-count" id="pipeline-novo">0</span>
+                                </div>
+                            </div>
+                            <div class="pipeline-event" data-status="contato">
+                                <div class="pipeline-icon contato">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Primeiro Contato</span>
+                                    <span class="pipeline-count" id="pipeline-contato">0</span>
+                                </div>
+                            </div>
+                            <div class="pipeline-event" data-status="qualificado">
+                                <div class="pipeline-icon qualificado">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Qualificado</span>
+                                    <span class="pipeline-count" id="pipeline-qualificado">0</span>
+                                </div>
+                            </div>
+                            <div class="pipeline-event" data-status="proposta">
+                                <div class="pipeline-icon proposta">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Proposta</span>
+                                    <span class="pipeline-count" id="pipeline-proposta">0</span>
+                                </div>
+                            </div>
+                            <div class="pipeline-event" data-status="negociacao">
+                                <div class="pipeline-icon negociacao">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Negociação</span>
+                                    <span class="pipeline-count" id="pipeline-negociacao">0</span>
+                                </div>
+                            </div>
+                            <div class="pipeline-event" data-status="ganho">
+                                <div class="pipeline-icon ganho">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="pipeline-content">
+                                    <span class="pipeline-label">Ganho</span>
+                                    <span class="pipeline-count" id="pipeline-ganho">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Eventos Recentes -->
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-clock"></i> Eventos Recentes</h3>
+                        <div class="recent-events" id="recentEvents">
+                            <!-- Eventos serão carregados via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calendar-main">
+                    <div id="calendar-widget"></div>
+                </div>
+            </div>
         </section>
 
         <!-- Tasks Tab -->

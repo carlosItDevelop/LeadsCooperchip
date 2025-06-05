@@ -657,13 +657,205 @@ body {
   border-radius: 4px;
 }
 
-/* Calendar */
-#calendar-widget {
+/* Calendar Layout */
+.calendar-layout {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+}
+
+.calendar-sidebar {
+  width: 300px;
   background-color: var(--bg-primary);
   border-radius: 8px;
   padding: 20px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.calendar-main {
+  flex: 1;
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+#calendar-widget {
+  height: 100%;
+}
+
+.sidebar-section {
+  margin-bottom: 30px;
+}
+
+.sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-section h3 i {
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+/* Pipeline Events */
+.pipeline-events {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pipeline-event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pipeline-event:hover {
+  background-color: var(--bg-tertiary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.pipeline-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pipeline-icon.novo {
+  background-color: #6366f1;
+}
+
+.pipeline-icon.contato {
+  background-color: #f59e0b;
+}
+
+.pipeline-icon.qualificado {
+  background-color: #10b981;
+}
+
+.pipeline-icon.proposta {
+  background-color: #8b5cf6;
+}
+
+.pipeline-icon.negociacao {
+  background-color: #ef4444;
+}
+
+.pipeline-icon.ganho {
+  background-color: #06b6d4;
+}
+
+.pipeline-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pipeline-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pipeline-count {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 10px;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Recent Events */
+.recent-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-event {
+  padding: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.recent-event:hover {
+  background-color: var(--bg-tertiary);
+  box-shadow: var(--shadow);
+}
+
+.recent-event-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recent-event-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.recent-event-date {
+  font-weight: 500;
+}
+
+.recent-event-user {
+  background-color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.empty-events {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 20px;
+  font-style: italic;
 }
 
 /* FullCalendar Theme Overrides */
@@ -1159,6 +1351,51 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+  }
+
+  .calendar-layout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .calendar-sidebar {
+    width: 100%;
+    order: 2;
+    max-height: 400px;
+  }
+
+  .calendar-main {
+    order: 1;
+    min-height: 500px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 20px;
+  }
+
+  .pipeline-events {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .pipeline-event {
+    padding: 8px;
+  }
+
+  .pipeline-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .pipeline-label {
+    font-size: 11px;
+  }
+
+  .pipeline-count {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }
 

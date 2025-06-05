@@ -216,6 +216,8 @@ async function loadSampleData() {
         renderKanbanBoard();
         renderTasksList();
         renderLogsTimeline();
+        updatePipelineCounters();
+        updateRecentEvents();
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
         showNotification('Erro ao carregar dados do servidor', 'error');
@@ -230,6 +232,8 @@ async function loadSampleData() {
         renderKanbanBoard();
         renderTasksList();
         renderLogsTimeline();
+        updatePipelineCounters();
+        updateRecentEvents();
     }
 }
 
@@ -449,6 +453,8 @@ async function updateLeadStatus(leadId, newStatus) {
 
         renderKanbanBoard();
         renderLeadsTable();
+        updatePipelineCounters();
+        updateRecentEvents();
         showNotification('Status do lead atualizado com sucesso!', 'success');
 
     } catch (error) {
@@ -459,6 +465,8 @@ async function updateLeadStatus(leadId, newStatus) {
         lead.status = oldStatus;
         renderKanbanBoard();
         renderLeadsTable();
+        updatePipelineCounters();
+        updateRecentEvents();
     }
 }
 
@@ -1275,6 +1283,8 @@ async function submitLead() {
         // Re-render components
         renderLeadsTable();
         renderKanbanBoard();
+        updatePipelineCounters();
+        updateRecentEvents();
 
         closeModal('leadModal');
         form.reset();
@@ -1569,6 +1579,8 @@ async function submitNote() {
         form.reset();
         renderLeadsTable();
         renderKanbanBoard();
+        updatePipelineCounters();
+        updateRecentEvents();
         showNotification('Nota adicionada com sucesso!', 'success');
 
     } catch (error) {
@@ -1650,6 +1662,8 @@ async function deleteLead(leadId) {
             // Re-render components
             renderLeadsTable();
             renderKanbanBoard();
+            updatePipelineCounters();
+            updateRecentEvents();
 
             Swal.fire({
                 title: 'Excluído!',
@@ -1866,6 +1880,7 @@ function getLogTypeLabel(type) {
     return labels[type] || type;
 }
 
+//```javascript
 // Export functions for global access
 window.toggleTheme = toggleTheme;
 window.openLeadModal = openLeadModal;
@@ -1957,6 +1972,8 @@ async function submitNewCard() {
         // Re-render components
         renderLeadsTable();
         renderKanbanBoard();
+        updatePipelineCounters();
+        updateRecentEvents();
 
         closeModal('newCardModal');
         form.reset();
@@ -1964,5 +1981,51 @@ async function submitNewCard() {
     } catch (error) {
         console.error('Erro ao salvar lead:', error);
         showNotification('Erro ao salvar lead', 'error');
+    }
+}
+
+// New functions to update the counters and recent events
+function updatePipelineCounters() {
+    const counters = {
+        novo: 0,
+        contato: 0,
+        qualificado: 0,
+        proposta: 0,
+        negociacao: 0,
+        ganho: 0
+    };
+
+    leads.forEach(lead => {
+        counters[lead.status]++;
+    });
+
+    const pipelineCountersDiv = document.getElementById('pipelineCounters');
+    if (pipelineCountersDiv) {
+        pipelineCountersDiv.innerHTML = `
+            <div class="pipeline-counter">Novo: ${counters.novo}</div>
+            <div class="pipeline-counter">Primeiro Contato: ${counters.contato}</div>
+            <div class="pipeline-counter">Qualificado: ${counters.qualificado}</div>
+            <div class="pipeline-counter">Proposta: ${counters.proposta}</div>
+            <div class="pipeline-counter">Negociação: ${counters.negociacao}</div>
+            <div class="pipeline-counter">Ganho: ${counters.ganho}</div>
+        `;
+    }
+}
+
+function updateRecentEvents() {
+    // Get the 5 most recent logs
+    const recentLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+
+    const recentEventsDiv = document.getElementById('recentEvents');
+    if (recentEventsDiv) {
+        recentEventsDiv.innerHTML = recentLogs.map(log => `
+            <div class="recent-event">
+                <div class="event-title">${log.title}</div>
+                <div class="event-details">
+                    <span class="event-date">${formatDate(log.timestamp)}</span> -
+                    <span class="event-responsible">${log.userId || log.user_id}</span>
+                </div>
+            </div>
+        `).join('');
     }
 }
