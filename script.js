@@ -7,8 +7,8 @@ let tasks = [];
 let logs = [];
 let draggedCard = null;
 
-// API Base URL
-const API_BASE = '/api';
+// API Base URL - verificar se estamos no Vite dev server ou servidor Node.js
+const API_BASE = window.location.port === '5173' ? 'http://localhost:5000/api' : '/api';
 
 // Sample Data
 const sampleLeads = [
@@ -206,18 +206,30 @@ function setupEventListeners() {
 
 async function loadSampleData() {
     try {
+        console.log('Carregando dados do servidor...');
+        
+        // Test server health first
+        const healthCheck = await fetch(API_BASE.replace('/api', '') + '/health');
+        if (!healthCheck.ok) {
+            throw new Error('Servidor não disponível');
+        }
+
         // Carregar dados do banco
         leads = await fetchFromAPI('/leads');
         tasks = await fetchFromAPI('/tasks');
         logs = await fetchFromAPI('/logs');
 
+        console.log('Dados carregados:', { leads: leads.length, tasks: tasks.length, logs: logs.length });
+
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
         renderLogsTimeline();
+        
+        showNotification('✅ Dados carregados do servidor', 'success');
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        showNotification('Erro ao carregar dados do servidor', 'error');
+        showNotification('⚠️ Modo offline: Usando dados de exemplo', 'warning');
 
         // Fallback para dados de exemplo se o servidor não estiver disponível
         leads = sampleLeads;
@@ -234,6 +246,8 @@ async function loadSampleData() {
 // Função para fazer requisições à API
 async function fetchFromAPI(endpoint, options = {}) {
     try {
+        console.log(`Fazendo requisição para: ${API_BASE + endpoint}`);
+        
         const response = await fetch(API_BASE + endpoint, {
             headers: {
                 'Content-Type': 'application/json',
@@ -241,6 +255,8 @@ async function fetchFromAPI(endpoint, options = {}) {
             },
             ...options
         });
+
+        console.log(`Resposta recebida: ${response.status}`);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -251,7 +267,9 @@ async function fetchFromAPI(endpoint, options = {}) {
         // Handle empty responses (like DELETE requests)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            return await response.json();
+            const data = await response.json();
+            console.log('Dados recebidos:', data);
+            return data;
         } else {
             return null;
         }
@@ -259,9 +277,9 @@ async function fetchFromAPI(endpoint, options = {}) {
         console.error('Erro na API:', error);
         
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            showNotification('Erro de conexão: Servidor não encontrado. Verifique se o servidor Node.js está rodando na porta 5000.', 'error');
+            showNotification('Erro de conexão: Verifique se o servidor está rodando na porta 5000.', 'error');
         } else {
-            showNotification(`Erro de conexão com o servidor: ${error.message}`, 'error');
+            showNotification(`Erro de conexão: ${error.message}`, 'error');
         }
         throw error;
     }
@@ -830,7 +848,12 @@ function initializeSalesChart() {
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 tension: 0.4,
-                fill: true
+                fill: true,
+                borderWidth: 3,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }]
         },
         options: {
@@ -841,9 +864,13 @@ function initializeSalesChart() {
                     display: true,
                     position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b',
+                        color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b',
                         usePointStyle: true,
-                        padding: 20
+                        padding: 20,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     }
                 }
             },
@@ -924,26 +951,41 @@ function initializeActivityChart() {
         data: {
             labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
             datasets: [{
-                label: 'Ligações',
+                label: '📞 Ligações',
                 data: [45, 52, 38, 67, 59, 73],
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4,
-                fill: false
+                fill: false,
+                borderWidth: 3,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }, {
-                label: 'Reuniões',
+                label: '🤝 Reuniões',
                 data: [28, 35, 42, 31, 45, 38],
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 tension: 0.4,
-                fill: false
+                fill: false,
+                borderWidth: 3,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }, {
-                label: 'Emails',
+                label: '📧 Emails',
                 data: [85, 93, 78, 102, 89, 95],
                 borderColor: '#f59e0b',
                 backgroundColor: 'rgba(245, 158, 11, 0.1)',
                 tension: 0.4,
-                fill: false
+                fill: false,
+                borderWidth: 3,
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }]
         },
         options: {
@@ -954,9 +996,13 @@ function initializeActivityChart() {
                     display: true,
                     position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b',
+                        color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b',
                         usePointStyle: true,
-                        padding: 15
+                        padding: 20,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     }
                 }
             },
@@ -1161,6 +1207,14 @@ async function addLog(logEntry) {
 
         console.log('Tentando salvar log:', dbLogEntry);
 
+        // Test server connectivity first
+        try {
+            await fetch(API_BASE.replace('/api', '') + '/health');
+        } catch (connectError) {
+            console.warn('Servidor não acessível, salvando log localmente');
+            throw new Error('Servidor não disponível');
+        }
+
         const newLog = await fetchFromAPI('/logs', {
             method: 'POST',
             body: JSON.stringify(dbLogEntry)
@@ -1200,7 +1254,7 @@ async function addLog(logEntry) {
         logs.unshift(fallbackLog);
         renderLogsTimeline();
         
-        showNotification('Log salvo localmente (erro no servidor)', 'warning');
+        showNotification('⚠️ Modo offline: Log salvo localmente', 'warning');
     }
 }
 
