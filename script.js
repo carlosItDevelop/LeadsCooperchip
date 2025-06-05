@@ -218,12 +218,12 @@ async function loadSampleData() {
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
         showNotification('Erro ao carregar dados do servidor', 'error');
-        
+
         // Fallback para dados de exemplo se o servidor não estiver disponível
         leads = sampleLeads;
         tasks = sampleTasks;
         logs = sampleLogs;
-        
+
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
@@ -234,7 +234,7 @@ async function loadSampleData() {
 // Função para fazer requisições à API
 async function fetchFromAPI(endpoint, options = {}) {
     try {
-        const response = await fetch(API_BASE + endpoint, {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
@@ -244,19 +244,19 @@ async function fetchFromAPI(endpoint, options = {}) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            console.error('API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
 
-        // Handle empty responses (like DELETE requests)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
             return await response.json();
         } else {
-            return null;
+            return await response.text();
         }
     } catch (error) {
-        console.error('Erro na API:', error);
-        showNotification('Erro de conexão com o servidor. Verifique se o servidor está rodando.', 'error');
+        console.error('Erro na API:', error.message || error);
+        showNotification('Erro na comunicação com o servidor', 'error');
         throw error;
     }
 }
@@ -1249,7 +1249,7 @@ async function submitLead() {
         // Re-render components
         renderLeadsTable();
         renderKanbanBoard();
-        
+
         closeModal('leadModal');
         form.reset();
         document.getElementById('leadModalTitle').textContent = 'Novo Lead';

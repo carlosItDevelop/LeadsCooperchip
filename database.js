@@ -67,7 +67,7 @@ async function initializeDatabase() {
                 type VARCHAR(50) NOT NULL,
                 title VARCHAR(255) NOT NULL,
                 description TEXT,
-                created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 user_id VARCHAR(255),
                 lead_id INTEGER REFERENCES leads(id)
             )
@@ -280,12 +280,12 @@ const api = {
         }
 
         if (filters.start_date) {
-            conditions.push(`DATE(created_timestamp) >= $${params.length + 1}`);
+            conditions.push(`DATE(timestamp) >= $${params.length + 1}`);
             params.push(filters.start_date);
         }
 
         if (filters.end_date) {
-            conditions.push(`DATE(created_timestamp) <= $${params.length + 1}`);
+            conditions.push(`DATE(timestamp) <= $${params.length + 1}`);
             params.push(filters.end_date);
         }
 
@@ -293,7 +293,7 @@ const api = {
             query += ' WHERE ' + conditions.join(' AND ');
         }
 
-        query += ' ORDER BY created_timestamp DESC';
+        query += ' ORDER BY timestamp DESC';
 
         const result = await pool.query(query, params);
         return result.rows;
