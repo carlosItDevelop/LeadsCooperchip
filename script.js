@@ -1333,28 +1333,33 @@ function formatCurrency(value) {
     }).format(value);
 }
 
+// Function to normalize text (remove accents and convert to lowercase)
+function normalizeText(text) {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 function filterLeads() {
     const searchInput = document.querySelector('.search-input');
     const statusFilter = document.querySelector('.filters .filter-select:nth-child(2)');
     const responsibleFilter = document.querySelector('.filters .filter-select:nth-child(3)');
 
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchTerm = searchInput ? normalizeText(searchInput.value) : '';
     const selectedStatus = statusFilter ? statusFilter.value : '';
-    const selectedResponsible = responsibleFilter ? responsibleFilter.value : '';
+    const selectedResponsible = responsibleFilter ? normalizeText(responsibleFilter.value) : '';
 
     let filteredLeads = leads.filter(lead => {
         // Search filter
         const matchesSearch = !searchTerm || 
-            lead.name.toLowerCase().includes(searchTerm) ||
-            lead.company.toLowerCase().includes(searchTerm) ||
-            lead.email.toLowerCase().includes(searchTerm);
+            normalizeText(lead.name).includes(searchTerm) ||
+            normalizeText(lead.company).includes(searchTerm) ||
+            normalizeText(lead.email).includes(searchTerm);
 
         // Status filter
         const matchesStatus = !selectedStatus || lead.status === selectedStatus;
 
         // Responsible filter
         const matchesResponsible = !selectedResponsible || 
-            lead.responsible.toLowerCase().includes(selectedResponsible.toLowerCase());
+            normalizeText(lead.responsible).includes(selectedResponsible);
 
         return matchesSearch && matchesStatus && matchesResponsible;
     });
