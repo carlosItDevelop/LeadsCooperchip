@@ -147,12 +147,6 @@ function initializeApp() {
     window.addEventListener('hashchange', () => {
         const tab = window.location.hash.slice(1) || 'dashboard';
         showTab(tab);
-        
-        // Update active nav
-        const navTab = document.querySelector(`[data-tab="${tab}"]`);
-        if (navTab) {
-            updateActiveNav(navTab);
-        }
     });
 
     // Initialize service worker for notifications
@@ -176,7 +170,6 @@ function setupEventListeners() {
             
             if (tab) {
                 showTab(tab);
-                updateActiveNav(navTab);
             }
         }
     });
@@ -351,25 +344,36 @@ function showTab(tabName) {
         tab.classList.remove('active');
     });
 
+    // Remove active class from all nav tabs
+    document.querySelectorAll('.nav-tab').forEach(navTab => {
+        navTab.classList.remove('active');
+    });
+
     // Show selected tab
     const targetTab = document.getElementById(tabName);
     if (targetTab) {
         targetTab.classList.add('active');
         console.log('Tab ativada:', tabName);
         
-        // Update URL without causing page reload
-        if (window.history && window.history.pushState) {
-            window.history.pushState(null, '', `#${tabName}`);
+        // Activate corresponding nav tab
+        const navTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (navTab) {
+            navTab.classList.add('active');
         }
+        
+        // Update URL without causing page reload
+        window.location.hash = tabName;
     } else {
         console.error('Tab não encontrada:', tabName);
         // Fallback para dashboard se tab não existir
         const dashboardTab = document.getElementById('dashboard');
         if (dashboardTab) {
             dashboardTab.classList.add('active');
-            if (window.history && window.history.pushState) {
-                window.history.pushState(null, '', '#dashboard');
+            const dashboardNav = document.querySelector('[data-tab="dashboard"]');
+            if (dashboardNav) {
+                dashboardNav.classList.add('active');
             }
+            window.location.hash = 'dashboard';
         }
     }
 
@@ -398,22 +402,20 @@ function showTab(tabName) {
     }
 }
 
-function updateActiveNav(activeItem) {
+function updateActiveNav() {
+    // Get current tab from hash
+    const currentTab = window.location.hash.slice(1) || 'dashboard';
+    
     // Remove active class from all nav tabs
     document.querySelectorAll('.nav-tab').forEach(item => {
         item.classList.remove('active');
     });
     
-    if (activeItem) {
-        activeItem.classList.add('active');
-        console.log('Nav item ativado:', activeItem.getAttribute('data-tab'));
-    } else {
-        // Se não há item ativo especificado, ativar com base no hash atual
-        const currentTab = window.location.hash.slice(1) || 'dashboard';
-        const navTab = document.querySelector(`[data-tab="${currentTab}"]`);
-        if (navTab) {
-            navTab.classList.add('active');
-        }
+    // Activate corresponding nav tab
+    const navTab = document.querySelector(`[data-tab="${currentTab}"]`);
+    if (navTab) {
+        navTab.classList.add('active');
+        console.log('Nav item ativado:', currentTab);
     }
 }
 
