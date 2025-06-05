@@ -136,6 +136,16 @@ app.post('/api/notes', async (req, res) => {
     }
 });
 
+app.get('/api/notes', async (req, res) => {
+    try {
+        const notes = await api.getAllNotes();
+        res.json(notes);
+    } catch (error) {
+        console.error('Erro ao buscar notes:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 app.delete('/api/notes/:id', async (req, res) => {
     try {
         await api.deleteNote(req.params.id);

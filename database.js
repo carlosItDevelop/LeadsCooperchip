@@ -368,6 +368,11 @@ const api = {
         return result.rows[0];
     },
 
+    async getAllNotes() {
+        const result = await pool.query('SELECT * FROM notes ORDER BY created_at DESC');
+        return result.rows;
+    },
+
     async deleteNote(id) {
         await pool.query('DELETE FROM notes WHERE id = $1', [id]);
     }

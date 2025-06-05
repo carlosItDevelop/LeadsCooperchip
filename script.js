@@ -1794,7 +1794,7 @@ async function loadAllLeadNotes() {
 
         // Iterate through each lead and assign its notes
         leads.forEach(lead => {
-            lead.notes = notes.filter(note => note.leadId === lead.id).map(note => note.content).join('\n\n---\n\n') || '';
+            lead.notes = notes.filter(note => note.lead_id === lead.id).map(note => note.content).join('\n\n---\n\n') || '';
         });
     } catch (error) {
         console.error('Erro ao carregar notas dos leads:', error);
