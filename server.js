@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -97,14 +98,11 @@ app.get('/api/logs', async (req, res) => {
 
 app.post('/api/logs', async (req, res) => {
     try {
-        console.log('Recebendo dados para log:', req.body);
         const newLog = await api.createLog(req.body);
-        console.log('Log criado com sucesso:', newLog);
         res.status(201).json(newLog);
     } catch (error) {
         console.error('Erro ao criar log:', error);
-        console.error('Dados recebidos:', req.body);
-        res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 
@@ -125,17 +123,6 @@ app.get('/health', (req, res) => {
 
 // Serve static files - must be last
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Handle SPA routing - serve index.html for all non-API routes
-app.get('*', (req, res) => {
-    // Não interferir com rotas da API
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'Endpoint não encontrado' });
-    }
-
-    // Para todas as outras rotas, servir o index.html (SPA)
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 

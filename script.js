@@ -7,8 +7,8 @@ let tasks = [];
 let logs = [];
 let draggedCard = null;
 
-// API Base URL - verificar se estamos no Vite dev server ou servidor Node.js
-const API_BASE = window.location.port === '5173' ? 'http://localhost:5000/api' : '/api';
+// API Base URL
+const API_BASE = '/api';
 
 // Sample Data
 const sampleLeads = [
@@ -139,15 +139,8 @@ function initializeApp() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
 
-    // Handle initial URL hash
-    const initialTab = window.location.hash.slice(1) || 'dashboard';
-    showTab(initialTab);
-
-    // Listen for hash changes (browser back/forward)
-    window.addEventListener('hashchange', () => {
-        const tab = window.location.hash.slice(1) || 'dashboard';
-        showTab(tab);
-    });
+    // Show dashboard by default
+    showTab('dashboard');
 
     // Initialize service worker for notifications
     if ('serviceWorker' in navigator) {
@@ -158,20 +151,14 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navigation - usar delegação de eventos para garantir que funcione
-    document.addEventListener('click', (e) => {
-        const navTab = e.target.closest('[data-tab]');
-        if (navTab) {
+    // Navigation
+    document.querySelectorAll('[data-tab]').forEach(item => {
+        item.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            
-            const tab = navTab.getAttribute('data-tab');
-            console.log('Clique em tab:', tab);
-            
-            if (tab) {
-                showTab(tab);
-            }
-        }
+            const tab = e.currentTarget.getAttribute('data-tab');
+            showTab(tab);
+            updateActiveNav(e.currentTarget);
+        });
     });
 
     // Task filters
@@ -190,15 +177,10 @@ function setupEventListeners() {
     }
 
     // Filter functionality for leads
-    const statusFilter = document.getElementById('statusFilter');
-    const responsibleFilter = document.getElementById('responsibleFilter');
-    
-    if (statusFilter) {
-        statusFilter.addEventListener('change', filterLeads);
-    }
-    if (responsibleFilter) {
-        responsibleFilter.addEventListener('change', filterLeads);
-    }
+    const filterSelects = document.querySelectorAll('.filters .filter-select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', filterLeads);
+    });
 
     // Logs filters
     const logsFilterBtn = document.querySelector('.logs-filters .btn');
@@ -222,50 +204,26 @@ function setupEventListeners() {
     setupKanbanDragDrop();
 }
 
-// Function to format logs from database
-function formatLogsFromDatabase(dbLogs) {
-    return dbLogs.map(log => ({
-        id: log.id,
-        type: log.type,
-        title: log.action,
-        description: log.details,
-        timestamp: log.created_at,
-        userId: log.user_id,
-        leadId: log.lead_id
-    }));
-}
-
 async function loadSampleData() {
     try {
-        console.log('Carregando dados do servidor...');
-
-        // Try to load data directly without health check first
-        const rawLeads = await fetchFromAPI('/leads');
-        const rawTasks = await fetchFromAPI('/tasks');
-        const rawLogs = await fetchFromAPI('/logs');
-
-        // Format data properly
-        leads = rawLeads;
-        tasks = rawTasks;
-        logs = formatLogsFromDatabase(rawLogs);
-
-        console.log('Dados carregados:', { leads: leads.length, tasks: tasks.length, logs: logs.length });
+        // Carregar dados do banco
+        leads = await fetchFromAPI('/leads');
+        tasks = await fetchFromAPI('/tasks');
+        logs = await fetchFromAPI('/logs');
 
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
         renderLogsTimeline();
-
-        showNotification('✅ Dados carregados do servidor', 'success');
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        showNotification('⚠️ Modo offline: Usando dados de exemplo', 'warning');
-
+        showNotification('Erro ao carregar dados do servidor', 'error');
+        
         // Fallback para dados de exemplo se o servidor não estiver disponível
         leads = sampleLeads;
         tasks = sampleTasks;
         logs = sampleLogs;
-
+        
         renderLeadsTable();
         renderKanbanBoard();
         renderTasksList();
@@ -276,8 +234,6 @@ async function loadSampleData() {
 // Função para fazer requisições à API
 async function fetchFromAPI(endpoint, options = {}) {
     try {
-        console.log(`Fazendo requisição para: ${API_BASE + endpoint}`);
-
         const response = await fetch(API_BASE + endpoint, {
             headers: {
                 'Content-Type': 'application/json',
@@ -286,31 +242,21 @@ async function fetchFromAPI(endpoint, options = {}) {
             ...options
         });
 
-        console.log(`Resposta recebida: ${response.status}`);
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`API Error: ${response.status} - ${errorText}`);
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
         // Handle empty responses (like DELETE requests)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            console.log('Dados recebidos:', data);
-            return data;
+            return await response.json();
         } else {
             return null;
         }
     } catch (error) {
         console.error('Erro na API:', error);
-
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            showNotification('Erro de conexão: Verifique se o servidor está rodando na porta 5000.', 'error');
-        } else {
-            showNotification(`Erro de conexão: ${error.message}`, 'error');
-        }
+        showNotification('Erro de conexão com o servidor. Verifique se o servidor está rodando.', 'error');
         throw error;
     }
 }
@@ -334,89 +280,33 @@ function setTheme(theme) {
 
 // Navigation
 function showTab(tabName) {
-    console.log('Navegando para tab:', tabName);
-    
-    // Remove # se existir no nome da tab
-    tabName = tabName.replace('#', '');
-    
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
-    });
-
-    // Remove active class from all nav tabs
-    document.querySelectorAll('.nav-tab').forEach(navTab => {
-        navTab.classList.remove('active');
     });
 
     // Show selected tab
     const targetTab = document.getElementById(tabName);
     if (targetTab) {
         targetTab.classList.add('active');
-        console.log('Tab ativada:', tabName);
-        
-        // Activate corresponding nav tab
-        const navTab = document.querySelector(`[data-tab="${tabName}"]`);
-        if (navTab) {
-            navTab.classList.add('active');
-        }
-        
-        // Update URL without causing page reload
-        window.location.hash = tabName;
-    } else {
-        console.error('Tab não encontrada:', tabName);
-        // Fallback para dashboard se tab não existir
-        const dashboardTab = document.getElementById('dashboard');
-        if (dashboardTab) {
-            dashboardTab.classList.add('active');
-            const dashboardNav = document.querySelector('[data-tab="dashboard"]');
-            if (dashboardNav) {
-                dashboardNav.classList.add('active');
-            }
-            window.location.hash = 'dashboard';
-        }
     }
 
     // Refresh content based on tab
     switch(tabName) {
         case 'calendar':
-            if (calendar) {
-                setTimeout(() => calendar.render(), 100);
-            }
+            if (calendar) calendar.render();
             break;
         case 'reports':
-            setTimeout(() => updateCharts(), 100);
-            break;
-        case 'leads-list':
-            renderLeadsTable();
-            break;
-        case 'kanban':
-            renderKanbanBoard();
-            break;
-        case 'tasks':
-            renderTasksList();
-            break;
-        case 'logs':
-            renderLogsTimeline();
+            updateCharts();
             break;
     }
 }
 
-function updateActiveNav() {
-    // Get current tab from hash
-    const currentTab = window.location.hash.slice(1) || 'dashboard';
-    
-    // Remove active class from all nav tabs
+function updateActiveNav(activeItem) {
     document.querySelectorAll('.nav-tab').forEach(item => {
         item.classList.remove('active');
     });
-    
-    // Activate corresponding nav tab
-    const navTab = document.querySelector(`[data-tab="${currentTab}"]`);
-    if (navTab) {
-        navTab.classList.add('active');
-        console.log('Nav item ativado:', currentTab);
-    }
+    activeItem.classList.add('active');
 }
 
 // Leads Management
@@ -431,8 +321,8 @@ function renderLeadsTable() {
             <td>${lead.email}</td>
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
-            <td>${lead.assigned_to || lead.responsible || 'Não atribuído'}</td>
-            <td>${formatDate(lead.lastContact || lead.created_at)}</td>
+            <td>${lead.responsible}</td>
+            <td>${formatDate(lead.lastContact)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">
@@ -933,30 +823,15 @@ function initializeSalesChart() {
                 data: [12, 19, 15, 25, 22, 30],
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 6
+                tension: 0.4
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b',
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b'
                     }
                 }
             },
@@ -987,8 +862,7 @@ function initializeConversionChart() {
     const ctx = document.getElementById('conversionChart');
     if (!ctx) return;
 
-    ```text
-charts.conversion = new Chart(ctx, {
+    charts.conversion = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Maria Santos', 'Carlos Oliveira', 'Ana Silva', 'Pedro Costa'],
@@ -1038,58 +912,31 @@ function initializeActivityChart() {
         data: {
             labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
             datasets: [{
-                label: '📞 Ligações',
+                label: 'Ligações',
                 data: [45, 52, 38, 67, 59, 73],
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.4,
-                fill: false,
-                borderWidth: 3,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 6
+                tension: 0.4
             }, {
-                label: '🤝 Reuniões',
+                label: 'Reuniões',
                 data: [28, 35, 42, 31, 45, 38],
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4,
-                fill: false,
-                borderWidth: 3,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 6
+                tension: 0.4
             }, {
-                label: '📧 Emails',
+                label: 'Emails',
                 data: [85, 93, 78, 102, 89, 95],
                 borderColor: '#f59e0b',
                 backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                tension: 0.4,
-                fill: false,
-                borderWidth: 3,
-                pointBackgroundColor: '#f59e0b',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 6
+                tension: 0.4
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
                     labels: {
-                        color: currentTheme === 'dark' ? '#f1f5f9' : '#1e293b',
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
+                        color: currentTheme === 'dark' ? '#cbd5e1' : '#64748b'
                     }
                 }
             },
@@ -1285,56 +1132,24 @@ async function addLog(logEntry) {
     try {
         // Ensure the log entry has the correct field names for the database
         const dbLogEntry = {
-            type: logEntry.type || 'activity',
-            action: logEntry.title || logEntry.action || 'Ação realizada',
-            details: logEntry.description || logEntry.details || '',
-            user_id: logEntry.user_id || logEntry.userId || 'Usuário Atual',
-            lead_id: logEntry.lead_id || logEntry.leadId || null
+            type: logEntry.type,
+            title: logEntry.title,
+            description: logEntry.description,
+            user_id: logEntry.user_id || logEntry.userId,
+            lead_id: logEntry.lead_id || logEntry.leadId
         };
 
-        console.log('Tentando salvar log:', dbLogEntry);
-
-        // Try to save log to server directly
-        const newLog = await fetchFromAPI('/logs', {
+        await fetchFromAPI('/logs', {
             method: 'POST',
             body: JSON.stringify(dbLogEntry)
         });
 
-        console.log('Log salvo com sucesso:', newLog);
-
-        // Adicionar o log localmente para exibição imediata
-        if (newLog) {
-            const formattedLog = {
-                id: newLog.id,
-                type: newLog.type,
-                title: newLog.action,
-                description: newLog.details,
-                timestamp: newLog.created_at,
-                userId: newLog.user_id,
-                leadId: newLog.lead_id
-            };
-
-            logs.unshift(formattedLog);
-            renderLogsTimeline();
-        }
+        // Recarregar logs
+        logs = await fetchFromAPI('/logs');
+        renderLogsTimeline();
     } catch (error) {
         console.error('Erro ao adicionar log:', error);
-
-        // Fallback: adicionar log localmente mesmo se falhar no servidor
-        const fallbackLog = {
-            id: Date.now(),
-            type: logEntry.type || 'activity',
-            title: logEntry.title || logEntry.action || 'Ação realizada',
-            description: logEntry.description || logEntry.details || '',
-            timestamp: new Date().toISOString(),
-            userId: logEntry.user_id || logEntry.userId || 'Usuário Atual',
-            leadId: logEntry.lead_id || logEntry.leadId || null
-        };
-
-        logs.unshift(fallbackLog);
-        renderLogsTimeline();
-
-        showNotification('⚠️ Modo offline: Log salvo localmente', 'warning');
+        showNotification('Erro ao salvar log', 'error');
     }
 }
 
@@ -1403,8 +1218,8 @@ async function submitLead() {
 
             await addLog({
                 type: 'lead',
-                action: 'Lead atualizado',
-                details: `Lead ${leadData.name} foi editado`,
+                title: 'Lead atualizado',
+                description: `Lead ${leadData.name} foi editado`,
                 user_id: 'Usuário Atual',
                 lead_id: parseInt(leadId)
             });
@@ -1422,8 +1237,8 @@ async function submitLead() {
 
             await addLog({
                 type: 'lead',
-                action: 'Novo lead criado',
-                details: `Lead ${leadData.name} foi adicionado ao sistema`,
+                title: 'Novo lead criado',
+                description: `Lead ${leadData.name} foi adicionado ao sistema`,
                 user_id: 'Usuário Atual',
                 lead_id: newLead.id
             });
@@ -1434,7 +1249,7 @@ async function submitLead() {
         // Re-render components
         renderLeadsTable();
         renderKanbanBoard();
-
+        
         closeModal('leadModal');
         form.reset();
         document.getElementById('leadModalTitle').textContent = 'Novo Lead';
@@ -1490,8 +1305,8 @@ function formatCurrency(value) {
 
 function filterLeads() {
     const searchInput = document.querySelector('.search-input');
-    const statusFilter = document.getElementById('statusFilter');
-    const responsibleFilter = document.getElementById('responsibleFilter');
+    const statusFilter = document.querySelector('.filters .filter-select:nth-child(2)');
+    const responsibleFilter = document.querySelector('.filters .filter-select:nth-child(3)');
 
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     const selectedStatus = statusFilter ? statusFilter.value : '';
@@ -1508,9 +1323,8 @@ function filterLeads() {
         const matchesStatus = !selectedStatus || lead.status === selectedStatus;
 
         // Responsible filter
-        const responsibleName = lead.assigned_to || lead.responsible || '';
         const matchesResponsible = !selectedResponsible || 
-            responsibleName.toLowerCase().includes(selectedResponsible.toLowerCase());
+            lead.responsible.toLowerCase().includes(selectedResponsible.toLowerCase());
 
         return matchesSearch && matchesStatus && matchesResponsible;
     });
@@ -1529,8 +1343,8 @@ function renderFilteredLeadsTable(filteredLeads) {
             <td>${lead.email}</td>
             <td>${lead.phone}</td>
             <td><span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></td>
-            <td>${lead.assigned_to || lead.responsible || 'Não atribuído'}</td>
-            <td>${formatDate(lead.lastContact || lead.created_at)}</td>
+            <td>${lead.responsible}</td>
+            <td>${formatDate(lead.lastContact)}</td>
             <td>${lead.score}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editLead(${lead.id}); event.stopPropagation();" title="Editar lead">
