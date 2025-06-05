@@ -132,6 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSampleData();
     initializeCharts();
     initializeCalendar();
+    
+    // Set up pipeline drag drop after DOM is loaded
+    setTimeout(setupPipelineDragDrop, 1000);
 });
 
 function initializeApp() {
@@ -202,6 +205,9 @@ function setupEventListeners() {
 
     // Kanban drag and drop
     setupKanbanDragDrop();
+    
+    // Pipeline events drag and drop
+    setupPipelineDragDrop();
 }
 
 async function loadSampleData() {
@@ -1880,6 +1886,142 @@ function getLogTypeLabel(type) {
     return labels[type] || type;
 }
 
+function openRecentEventDetails(eventIndex) {
+    // Get the same sorted logs as in updateRecentEvents
+    const recentLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+    const log = recentLogs[eventIndex];
+
+    if (!log) {
+        showNotification('Evento não encontrado', 'error');
+        return;
+    }
+
+    // Get related lead information if available
+    let leadInfo = '';
+    if (log.lead_id || log.leadId) {
+        const lead = leads.find(l => l.id === (log.lead_id || log.leadId));
+        if (lead) {
+            leadInfo = `
+                <div class="log-detail-section">
+                    <h4><i class="fas fa-user"></i> Lead Relacionado</h4>
+                    <p><strong>Nome:</strong> ${lead.name}</p>
+                    <p><strong>Empresa:</strong> ${lead.company}</p>
+                    <p><strong>Email:</strong> ${lead.email}</p>
+                    <p><strong>Status:</strong> <span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></p>
+                </div>
+            `;
+        }
+    }
+
+    // Get type icon and color
+    const typeIcons = {
+        lead: { icon: 'user-plus', color: '#3b82f6' },
+        email: { icon: 'envelope', color: '#10b981' },
+        call: { icon: 'phone', color: '#f59e0b' },
+        task: { icon: 'tasks', color: '#8b5cf6' },
+        meeting: { icon: 'calendar', color: '#ef4444' },
+        note: { icon: 'sticky-note', color: '#06b6d4' }
+    };
+
+    const typeInfo = typeIcons[log.type] || { icon: 'info-circle', color: '#6b7280' };
+
+    // Build modal content
+    const modalContent = `
+        <div class="log-details-container">
+            <div class="log-detail-header">
+                <div class="log-detail-icon" style="background-color: ${typeInfo.color};">
+                    <i class="fas fa-${typeInfo.icon}"></i>
+                </div>
+                <div class="log-detail-title">
+                    <h3>${log.title}</h3>
+                    <span class="log-detail-type">${getLogTypeLabel(log.type)}</span>
+                </div>
+            </div>
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-align-left"></i> Descrição</h4>
+                <p>${log.description}</p>
+            </div>
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-clock"></i> Informações Temporais</h4>
+                <p><strong>Data/Hora:</strong> ${formatDateTime(log.timestamp)}</p>
+                <p><strong>Usuário:</strong> ${log.user_id || log.userId}</p>
+            </div>
+
+            ${leadInfo}
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-info-circle"></i> Informações Técnicas</h4>
+                <p><strong>ID do Log:</strong> ${log.id || 'N/A'}</p>
+                <p><strong>Tipo:</strong> ${log.type}</p>
+                ${log.lead_id || log.leadId ? `<p><strong>Lead ID:</strong> ${log.lead_id || log.leadId}</p>` : ''}
+            </div>
+        </div>
+    `;
+
+    // Set modal content and show
+    document.getElementById('logDetailsContent').innerHTML = modalContent;
+    document.getElementById('logDetailsTitle').textContent = `Detalhes do Evento - ${log.title}`;
+    document.getElementById('logDetailsModal').style.display = 'block';
+}
+
+function setupPipelineDragDrop() {
+    // Set up drag and drop for pipeline events
+    document.querySelectorAll('.pipeline-event').forEach(event => {
+        event.setAttribute('draggable', 'true');
+        
+        event.addEventListener('dragstart', (e) => {
+            const status = e.currentTarget.getAttribute('data-status');
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                type: 'pipeline-event',
+                status: status,
+                title: `Novo evento ${getStatusLabel(status)}`,
+                description: `Evento criado para status ${getStatusLabel(status)}`
+            }));
+            e.currentTarget.style.opacity = '0.5';
+        });
+
+        event.addEventListener('dragend', (e) => {
+            e.currentTarget.style.opacity = '1';
+        });
+    });
+
+    // Set up drop zone for calendar
+    const calendarWidget = document.getElementById('calendar-widget');
+    if (calendarWidget) {
+        calendarWidget.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        calendarWidget.addEventListener('drop', (e) => {
+            e.preventDefault();
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                if (data.type === 'pipeline-event') {
+                    // Get the clicked date if available, otherwise use today
+                    const clickedDate = new Date();
+                    clickedDate.setHours(9, 0, 0, 0);
+
+                    // Pre-fill the activity modal with pipeline data
+                    document.getElementById('activityType').value = 'meeting';
+                    document.getElementById('activityTitle').value = data.title;
+                    document.getElementById('activityDescription').value = data.description;
+                    document.getElementById('activityDateTime').value = clickedDate.toISOString().slice(0, 16);
+                    
+                    // Open activity modal
+                    document.getElementById('activityModal').style.display = 'block';
+                    
+                    showNotification(`Criando evento para ${data.status}`, 'info');
+                }
+            } catch (error) {
+                console.error('Erro ao processar drop:', error);
+            }
+        });
+    }
+}
+
 //```javascript
 // Export functions for global access
 window.toggleTheme = toggleTheme;
@@ -1903,6 +2045,7 @@ window.applyLogsFilters = applyLogsFilters;
 window.openNewCardModal = openNewCardModal;
 window.submitNewCard = submitNewCard;
 window.openLogDetails = openLogDetails;
+window.openRecentEventDetails = openRecentEventDetails;
 
 // Lead Notes Management
 async function loadAllLeadNotes() {
@@ -1999,6 +2142,14 @@ function updatePipelineCounters() {
         counters[lead.status]++;
     });
 
+    // Update sidebar pipeline counters
+    Object.keys(counters).forEach(status => {
+        const counterElement = document.getElementById(`pipeline-${status}`);
+        if (counterElement) {
+            counterElement.textContent = counters[status];
+        }
+    });
+
     const pipelineCountersDiv = document.getElementById('pipelineCounters');
     if (pipelineCountersDiv) {
         pipelineCountersDiv.innerHTML = `
@@ -2018,14 +2169,18 @@ function updateRecentEvents() {
 
     const recentEventsDiv = document.getElementById('recentEvents');
     if (recentEventsDiv) {
-        recentEventsDiv.innerHTML = recentLogs.map(log => `
-            <div class="recent-event">
-                <div class="event-title">${log.title}</div>
-                <div class="event-details">
-                    <span class="event-date">${formatDate(log.timestamp)}</span> -
-                    <span class="event-responsible">${log.userId || log.user_id}</span>
+        if (recentLogs.length === 0) {
+            recentEventsDiv.innerHTML = '<div class="empty-events">Nenhum evento recente</div>';
+        } else {
+            recentEventsDiv.innerHTML = recentLogs.map((log, index) => `
+                <div class="recent-event" onclick="openRecentEventDetails(${index})" title="Clique para ver detalhes">
+                    <div class="recent-event-title">${log.title}</div>
+                    <div class="recent-event-meta">
+                        <span class="recent-event-date">${formatDate(log.timestamp)}</span>
+                        <span class="recent-event-user">${log.userId || log.user_id}</span>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
 }
