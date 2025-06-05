@@ -1,7 +1,7 @@
 run = "vite"
 entrypoint = "index.html"
 hidden = [".config"]
-modules = ["nodejs-18", "web"]
+modules = ["nodejs-18", "web", "postgresql-16"]
 
 [nix]
 channel = "stable-23_05"

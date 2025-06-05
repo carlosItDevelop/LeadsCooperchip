@@ -1,45 +1,540 @@
-<!--
-  Hit RUN to see this project in action!
-  
-  This project will auto-refresh as you edit the HTML, CSS and JS. See README.md for more info (including how to disable auto-refresh and install packages).
--->
-
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>Replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Lab Solutions - CRM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.3/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 </head>
+<body data-theme="dark">
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>General Lab CRM</span>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </div>
+                    <div class="user-menu">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Usuário</span>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-<body>
-  <main>
-    <h1 class="title">Welcome to HTML on Replit!</h1>
-    <p class="description">Get started by editing
-      <code class="code">index.html</code>. The webview will auto-refresh as you edit! (See <code
-        class="code">README.md</code> if you want to
-      disable auto-refresh.)
-    </p>
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <div class="nav-tabs-container">
+                <a href="#dashboard" class="nav-tab active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#leads-list" class="nav-tab" data-tab="leads-list">
+                    <i class="fas fa-list"></i>
+                    <span>Lista de Leads</span>
+                </a>
+                <a href="#kanban" class="nav-tab" data-tab="kanban">
+                    <i class="fas fa-columns"></i>
+                    <span>Kanban</span>
+                </a>
+                <a href="#calendar" class="nav-tab" data-tab="calendar">
+                    <i class="fas fa-calendar"></i>
+                    <span>Agenda</span>
+                </a>
+                <a href="#tasks" class="nav-tab" data-tab="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Tarefas</span>
+                </a>
+                <a href="#reports" class="nav-tab" data-tab="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="#logs" class="nav-tab" data-tab="logs">
+                    <i class="fas fa-history"></i>
+                    <span>Histórico & Logs</span>
+                </a>
+            </div>
+        </nav>
 
-    <section class="grid">
-      <a href="https://replit.com/learn" class='card'>
-        <h2>Learn &rarr;</h2>
-        <p>Find tutorials on Replit to learn more.</p>
-      </a>
+        <!-- Main Content -->
+        <main class="main-content">
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content active">
+            <h1>Dashboard</h1>
 
-      <a href="https://docs.replit.com/category/deployments" class='card'>
-        <h2>Deploy &rarr;</h2>
-        <p>
-          After you are happy with this app, deploy it on Replit!
-        </p>
-      </a>
-    </section>
-  </main>
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3>Novos Leads</h3>
+                        <div class="kpi-value">24</div>
+                        <div class="kpi-trend positive">+12% vs mês anterior</div>
+                    </div>
+                </div>
 
-  <script type="module" src="script.js"></script>
+                <div class="kpi-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3>Leads em Contato</h3>
+                        <div class="kpi-value">156</div>
+                        <div class="kpi-trend positive">+8% vs mês anterior</div>
+                    </div>
+                </div>
 
+                <div class="kpi-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3>Leads Qualificados</h3>
+                        <div class="kpi-value">89</div>
+                        <div class="kpi-trend positive">+15% vs mês anterior</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3>Taxa de Conversão</h3>
+                        <div class="kpi-value">23.5%</div>
+                        <div class="kpi-trend negative">-2% vs mês anterior</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Funil de Leads</h3>
+                    <canvas id="funnelChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Leads por Origem</h3>
+                    <canvas id="sourceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Próximas Ações Importantes</h3>
+                <div class="action-list">
+                    <div class="action-item urgent">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="action-content">
+                            <h4>Follow-up com João Silva</h4>
+                            <p>Lead quente - Venceu há 2 dias</p>
+                        </div>
+                        <button class="btn btn-sm btn-primary">Contatar</button>
+                    </div>
+
+                    <div class="action-item">
+                        <i class="fas fa-clock"></i>
+                        <div class="action-content">
+                            <h4>Demonstração agendada</h4>
+                            <p>Maria Santos - Hoje 14:00</p>
+                        </div>
+                        <button class="btn btn-sm btn-secondary">Preparar</button>
+                    </div>
+
+                    <div class="action-item">
+                        <i class="fas fa-envelope"></i>
+                        <div class="action-content">
+                            <h4>Proposta para enviar</h4>
+                            <p>Tech Corp - Aguardando há 1 dia</p>
+                        </div>
+                        <button class="btn btn-sm btn-success">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lista de Leads Tab -->
+        <section id="leads-list" class="tab-content">
+            <div class="section-header">
+                <h1>Lista de Leads</h1>
+                <button class="btn btn-primary" onclick="openLeadModal()">
+                    <i class="fas fa-plus"></i> Novo Lead
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters">
+                <input type="text" placeholder="Buscar leads..." class="search-input">
+                <select class="filter-select">
+                    <option value="">Todos os Status</option>
+                    <option value="novo">Novo</option>
+                    <option value="contato">Primeiro Contato</option>
+                    <option value="qualificado">Qualificado</option>
+                    <option value="proposta">Proposta</option>
+                </select>
+                <select class="filter-select">
+                    <option value="">Todos Vendedores</option>
+                    <option value="joao">João</option>
+                    <option value="maria">Maria</option>
+                    <option value="carlos">Carlos</option>
+                </select>
+            </div>
+
+            <!-- Tabela de Leads -->
+            <div class="table-container">
+                <table class="leads-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Empresa</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Status</th>
+                            <th>Responsável</th>
+                            <th>Último Contato</th>
+                            <th>Score</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody">
+                        <!-- Dados serão carregados via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Kanban Tab -->
+        <section id="kanban" class="tab-content">
+            <h1>Pipeline de Vendas</h1>
+
+            <div class="kanban-board">
+                <div class="kanban-column" data-status="novo">
+                    <div class="column-header">
+                        <h3>Novo</h3>
+                        <span class="lead-count">8</span>
+                    </div>
+                    <div class="column-cards" id="novo-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="contato">
+                    <div class="column-header">
+                        <h3>Primeiro Contato</h3>
+                        <span class="lead-count">12</span>
+                    </div>
+                    <div class="column-cards" id="contato-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="qualificado">
+                    <div class="column-header">
+                        <h3>Qualificado</h3>
+                        <span class="lead-count">6</span>
+                    </div>
+                    <div class="column-cards" id="qualificado-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="proposta">
+                    <div class="column-header">
+                        <h3>Proposta</h3>
+                        <span class="lead-count">4</span>
+                    </div>
+                    <div class="column-cards" id="proposta-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="negociacao">
+                    <div class="column-header">
+                        <h3>Negociação</h3>
+                        <span class="lead-count">3</span>
+                    </div>
+                    <div class="column-cards" id="negociacao-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="ganho">
+                    <div class="column-header success">
+                        <h3>Ganho</h3>
+                        <span class="lead-count">15</span>
+                    </div>
+                    <div class="column-cards" id="ganho-cards">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar Tab -->
+        <section id="calendar" class="tab-content">
+            <div class="section-header">
+                <h1>Agenda</h1>
+                <button class="btn btn-primary" onclick="openEventModal()">
+                    <i class="fas fa-plus"></i> Nova Atividade
+                </button>
+            </div>
+
+            <div id="calendar-widget"></div>
+        </section>
+
+        <!-- Tasks Tab -->
+        <section id="tasks" class="tab-content">
+            <div class="section-header">
+                <h1>Tarefas</h1>
+                <button class="btn btn-primary" onclick="openTaskModal()">
+                    <i class="fas fa-plus"></i> Nova Tarefa
+                </button>
+            </div>
+
+            <div class="tasks-container">
+                <div class="task-filters">
+                    <button class="filter-btn active" data-filter="all">Todas</button>
+                    <button class="filter-btn" data-filter="pending">Pendentes</button>
+                    <button class="filter-btn" data-filter="completed">Concluídas</button>
+                    <button class="filter-btn" data-filter="overdue">Atrasadas</button>
+                </div>
+
+                <div class="tasks-list" id="tasksList">
+                    <!-- Tarefas serão carregadas via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Tab -->
+        <section id="reports" class="tab-content">
+            <h1>Relatórios</h1>
+
+            <div class="reports-grid">
+                <div class="report-card">
+                    <h3>Performance de Vendas</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+
+                <div class="report-card">
+                    <h3>Conversão por Vendedor</h3>
+                    <canvas id="conversionChart"></canvas>
+                </div>
+
+                <div class="report-card">
+                    <h3>Atividades por Período</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+
+                <div class="report-card">
+                    <h3>Tempo Médio no Pipeline</h3>
+                    <canvas id="pipelineTimeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logs Tab -->
+        <section id="logs" class="tab-content">
+            <h1>Histórico & Logs</h1>
+
+            <!-- Filtros -->
+            <div class="logs-filters">
+                <input type="date" class="date-input" id="startDateFilter" placeholder="Data início">
+                <input type="date" class="date-input" id="endDateFilter" placeholder="Data fim">
+                <select class="filter-select" id="typeFilter">
+                    <option value="">Todos os Tipos</option>
+                    <option value="lead">Lead</option>
+                    <option value="email">Email</option>
+                    <option value="call">Ligação</option>
+                    <option value="task">Tarefa</option>
+                    <option value="meeting">Reunião</option>
+                    <option value="note">Nota</option>
+                </select>
+                <button class="btn btn-secondary" onclick="applyLogsFilters()">Filtrar</button>
+            </div>
+
+            <div class="logs-timeline" id="logsTimeline">
+                <!-- Logs serão carregados via JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    </div> <!-- Close app-container -->
+
+    <!-- Modals -->
+    <!-- Lead Modal -->
+    <div id="leadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="leadModalTitle">Novo Lead</h2>
+                <span class="close" onclick="closeModal('leadModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="leadForm">
+                    <input type="hidden" name="id" id="leadId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome *</label>
+                            <input type="text" name="name" id="leadName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Empresa</label>
+                            <input type="text" name="company" id="leadCompany">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" name="email" id="leadEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="tel" name="phone" id="leadPhone">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <input type="text" name="position" id="leadPosition">
+                        </div>
+                        <div class="form-group">
+                            <label>Origem</label>
+                            <select name="source" id="leadSource">
+                                <option value="website">Website</option>
+                                <option value="referral">Indicação</option>
+                                <option value="social">Redes Sociais</option>
+                                <option value="event">Evento</option>
+                                <option value="cold-call">Cold Call</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" id="leadStatus">
+                                <option value="novo">Novo</option>
+                                <option value="contato">Primeiro Contato</option>
+                                <option value="qualificado">Qualificado</option>
+                                <option value="proposta">Proposta</option>
+                                <option value="negociacao">Negociação</option>
+                                <option value="ganho">Ganho</option>
+                                <option value="perdido">Perdido</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Potencial (R$)</label>
+                            <input type="number" name="value" id="leadValue" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <textarea name="notes" id="leadNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('leadModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" onclick="submitLead()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agendar Atividade</h2>
+                <span class="close" onclick="closeModal('activityModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="activityForm">
+                    <input type="hidden" name="leadId" id="activityLeadId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Atividade *</label>
+                            <select name="type" id="activityType" required>
+                                <option value="call">Ligação</option>
+                                <option value="meeting">Reunião</option>
+                                <option value="email">Email</option>
+                                <option value="demo">Demonstração</option>
+                                <option value="follow-up">Follow-up</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data e Hora *</label>
+                            <input type="datetime-local" name="datetime" id="activityDateTime" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" name="title" id="activityTitle" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea name="description" id="activityDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('activityModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" onclick="submitActivity()">Agendar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Nota</h2>
+                <span class="close" onclick="closeModal('noteModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <input type="hidden" name="leadId" id="noteLeadId">
+                    <div class="form-group">
+                        <label>Nota *</label>
+                        <textarea name="note" id="noteText" rows="5" required placeholder="Digite sua nota aqui..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('noteModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" onclick="submitNote()">Salvar Nota</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notifications" class="notifications-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.3/dist/sweetalert2.all.min.js"></script>
+    <script src="script.js"></script>
 </body>
-
 </html>
