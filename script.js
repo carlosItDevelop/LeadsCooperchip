@@ -204,20 +204,32 @@ function setupEventListeners() {
     setupKanbanDragDrop();
 }
 
+// Function to format logs from database
+function formatLogsFromDatabase(dbLogs) {
+    return dbLogs.map(log => ({
+        id: log.id,
+        type: log.type,
+        title: log.action,
+        description: log.details,
+        timestamp: log.created_at,
+        userId: log.user_id,
+        leadId: log.lead_id
+    }));
+}
+
 async function loadSampleData() {
     try {
         console.log('Carregando dados do servidor...');
-        
-        // Test server health first
-        const healthCheck = await fetch(API_BASE.replace('/api', '') + '/health');
-        if (!healthCheck.ok) {
-            throw new Error('Servidor não disponível');
-        }
 
-        // Carregar dados do banco
-        leads = await fetchFromAPI('/leads');
-        tasks = await fetchFromAPI('/tasks');
-        logs = await fetchFromAPI('/logs');
+        // Try to load data directly without health check first
+        const rawLeads = await fetchFromAPI('/leads');
+        const rawTasks = await fetchFromAPI('/tasks');
+        const rawLogs = await fetchFromAPI('/logs');
+
+        // Format data properly
+        leads = rawLeads;
+        tasks = rawTasks;
+        logs = formatLogsFromDatabase(rawLogs);
 
         console.log('Dados carregados:', { leads: leads.length, tasks: tasks.length, logs: logs.length });
 
@@ -225,7 +237,7 @@ async function loadSampleData() {
         renderKanbanBoard();
         renderTasksList();
         renderLogsTimeline();
-        
+
         showNotification('✅ Dados carregados do servidor', 'success');
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -247,7 +259,7 @@ async function loadSampleData() {
 async function fetchFromAPI(endpoint, options = {}) {
     try {
         console.log(`Fazendo requisição para: ${API_BASE + endpoint}`);
-        
+
         const response = await fetch(API_BASE + endpoint, {
             headers: {
                 'Content-Type': 'application/json',
@@ -275,7 +287,7 @@ async function fetchFromAPI(endpoint, options = {}) {
         }
     } catch (error) {
         console.error('Erro na API:', error);
-        
+
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             showNotification('Erro de conexão: Verifique se o servidor está rodando na porta 5000.', 'error');
         } else {
@@ -1207,14 +1219,7 @@ async function addLog(logEntry) {
 
         console.log('Tentando salvar log:', dbLogEntry);
 
-        // Test server connectivity first
-        try {
-            await fetch(API_BASE.replace('/api', '') + '/health');
-        } catch (connectError) {
-            console.warn('Servidor não acessível, salvando log localmente');
-            throw new Error('Servidor não disponível');
-        }
-
+        // Try to save log to server directly
         const newLog = await fetchFromAPI('/logs', {
             method: 'POST',
             body: JSON.stringify(dbLogEntry)
@@ -1233,13 +1238,13 @@ async function addLog(logEntry) {
                 userId: newLog.user_id,
                 leadId: newLog.lead_id
             };
-            
+
             logs.unshift(formattedLog);
             renderLogsTimeline();
         }
     } catch (error) {
         console.error('Erro ao adicionar log:', error);
-        
+
         // Fallback: adicionar log localmente mesmo se falhar no servidor
         const fallbackLog = {
             id: Date.now(),
@@ -1250,10 +1255,10 @@ async function addLog(logEntry) {
             userId: logEntry.user_id || logEntry.userId || 'Usuário Atual',
             leadId: logEntry.lead_id || logEntry.leadId || null
         };
-        
+
         logs.unshift(fallbackLog);
         renderLogsTimeline();
-        
+
         showNotification('⚠️ Modo offline: Log salvo localmente', 'warning');
     }
 }
