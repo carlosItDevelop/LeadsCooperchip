@@ -3,15 +3,26 @@ const { Pool } = require('pg');
 
 // Configuração do pool de conexões
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    database: 'GeneralLabSolutionsDb',
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/GeneralLabSolutionsDb',
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || 'GeneralLabSolutionsDb',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 // Função para inicializar o banco de dados
 async function initializeDatabase() {
     try {
         console.log('Conectando ao banco de dados...');
+        
+        // Testar conexão
+        await pool.query('SELECT NOW()');
+        console.log('Conexão com banco de dados estabelecida com sucesso!');
 
         // Criar tabelas se não existirem
         await pool.query(`
@@ -56,7 +67,7 @@ async function initializeDatabase() {
                 type VARCHAR(50) NOT NULL,
                 title VARCHAR(255) NOT NULL,
                 description TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 user_id VARCHAR(255),
                 lead_id INTEGER REFERENCES leads(id)
             )
@@ -269,12 +280,12 @@ const api = {
         }
 
         if (filters.start_date) {
-            conditions.push(`DATE(timestamp) >= $${params.length + 1}`);
+            conditions.push(`DATE(created_timestamp) >= $${params.length + 1}`);
             params.push(filters.start_date);
         }
 
         if (filters.end_date) {
-            conditions.push(`DATE(timestamp) <= $${params.length + 1}`);
+            conditions.push(`DATE(created_timestamp) <= $${params.length + 1}`);
             params.push(filters.end_date);
         }
 
@@ -282,7 +293,7 @@ const api = {
             query += ' WHERE ' + conditions.join(' AND ');
         }
 
-        query += ' ORDER BY timestamp DESC';
+        query += ' ORDER BY created_timestamp DESC';
 
         const result = await pool.query(query, params);
         return result.rows;
