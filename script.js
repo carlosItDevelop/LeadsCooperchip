@@ -1070,15 +1070,15 @@ function renderLogsTimeline() {
 
     logsTimeline.innerHTML = `
         <div class="logs-content">
-            ${paginatedLogs.map(log => `
+            ${paginatedLogs.map((log, index) => `
                 <div class="log-item">
                     <div class="log-icon">
                         <i class="fas fa-${getLogIcon(log.type)}"></i>
                     </div>
                     <div class="log-content">
-                        <div class="log-title">${log.title}</div>
+                        <div class="log-title clickable" onclick="openLogDetails(${startIndex + index})" title="Clique para ver detalhes">${log.title}</div>
                         <div class="log-description">${log.description}</div>
-                        <div class="log-time">${formatDateTime(log.timestamp)} - ${log.userId}</div>
+                        <div class="log-time">${formatDateTime(log.timestamp)} - ${log.user_id || log.userId}</div>
                     </div>
                 </div>
             `).join('')}
@@ -1764,6 +1764,108 @@ async function submitTask() {
     }
 }
 
+function openLogDetails(logIndex) {
+    // Apply the same filters to get the filtered logs
+    let filteredLogs = logs.filter(log => {
+        const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+
+        if (logsFilters.startDate && logDate < logsFilters.startDate) return false;
+        if (logsFilters.endDate && logDate > logsFilters.endDate) return false;
+        if (logsFilters.type && log.type !== logsFilters.type) return false;
+
+        return true;
+    });
+
+    const sortedLogs = filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const log = sortedLogs[logIndex];
+
+    if (!log) {
+        showNotification('Log não encontrado', 'error');
+        return;
+    }
+
+    // Get related lead information if available
+    let leadInfo = '';
+    if (log.lead_id || log.leadId) {
+        const lead = leads.find(l => l.id === (log.lead_id || log.leadId));
+        if (lead) {
+            leadInfo = `
+                <div class="log-detail-section">
+                    <h4><i class="fas fa-user"></i> Lead Relacionado</h4>
+                    <p><strong>Nome:</strong> ${lead.name}</p>
+                    <p><strong>Empresa:</strong> ${lead.company}</p>
+                    <p><strong>Email:</strong> ${lead.email}</p>
+                    <p><strong>Status:</strong> <span class="status-badge status-${lead.status}">${getStatusLabel(lead.status)}</span></p>
+                </div>
+            `;
+        }
+    }
+
+    // Get type icon and color
+    const typeIcons = {
+        lead: { icon: 'user-plus', color: '#3b82f6' },
+        email: { icon: 'envelope', color: '#10b981' },
+        call: { icon: 'phone', color: '#f59e0b' },
+        task: { icon: 'tasks', color: '#8b5cf6' },
+        meeting: { icon: 'calendar', color: '#ef4444' },
+        note: { icon: 'sticky-note', color: '#06b6d4' }
+    };
+
+    const typeInfo = typeIcons[log.type] || { icon: 'info-circle', color: '#6b7280' };
+
+    // Build modal content
+    const modalContent = `
+        <div class="log-details-container">
+            <div class="log-detail-header">
+                <div class="log-detail-icon" style="background-color: ${typeInfo.color};">
+                    <i class="fas fa-${typeInfo.icon}"></i>
+                </div>
+                <div class="log-detail-title">
+                    <h3>${log.title}</h3>
+                    <span class="log-detail-type">${getLogTypeLabel(log.type)}</span>
+                </div>
+            </div>
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-align-left"></i> Descrição</h4>
+                <p>${log.description}</p>
+            </div>
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-clock"></i> Informações Temporais</h4>
+                <p><strong>Data/Hora:</strong> ${formatDateTime(log.timestamp)}</p>
+                <p><strong>Usuário:</strong> ${log.user_id || log.userId}</p>
+            </div>
+
+            ${leadInfo}
+
+            <div class="log-detail-section">
+                <h4><i class="fas fa-info-circle"></i> Informações Técnicas</h4>
+                <p><strong>ID do Log:</strong> ${log.id || 'N/A'}</p>
+                <p><strong>Tipo:</strong> ${log.type}</p>
+                ${log.lead_id || log.leadId ? `<p><strong>Lead ID:</strong> ${log.lead_id || log.leadId}</p>` : ''}
+            </div>
+        </div>
+    `;
+
+    // Set modal content and show
+    document.getElementById('logDetailsContent').innerHTML = modalContent;
+    document.getElementById('logDetailsTitle').textContent = `Detalhes do Log - ${log.title}`;
+    document.getElementById('logDetailsModal').style.display = 'block';
+}
+
+function getLogTypeLabel(type) {
+    const labels = {
+        lead: 'Lead',
+        email: 'Email',
+        call: 'Ligação',
+        task: 'Tarefa',
+        meeting: 'Reunião',
+        note: 'Nota'
+    };
+    return labels[type] || type;
+}
+
 // Export functions for global access
 window.toggleTheme = toggleTheme;
 window.openLeadModal = openLeadModal;
@@ -1785,6 +1887,7 @@ window.openTaskDetails = openTaskDetails;
 window.applyLogsFilters = applyLogsFilters;
 window.openNewCardModal = openNewCardModal;
 window.submitNewCard = submitNewCard;
+window.openLogDetails = openLogDetails;
 
 // Lead Notes Management
 async function loadAllLeadNotes() {

@@ -690,6 +690,24 @@
         </div>
     </div>
 
+    <!-- Log Details Modal -->
+    <div id="logDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="logDetailsTitle">Detalhes do Log</h2>
+                <span class="close" onclick="closeModal('logDetailsModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="logDetailsContent">
+                    <!-- Conteúdo será preenchido dinamicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('logDetailsModal')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Container -->
     <div id="notifications" class="notifications-container"></div>
 
