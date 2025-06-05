@@ -527,6 +527,66 @@
         </div>
     </div>
 
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="taskModalTitle">Nova Tarefa</h2>
+                <span class="close" onclick="closeModal('taskModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <input type="hidden" name="id" id="taskId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Título *</label>
+                            <input type="text" name="title" id="taskTitle" required placeholder="Ex: Follow-up com cliente">
+                        </div>
+                        <div class="form-group">
+                            <label>Prioridade</label>
+                            <select name="priority" id="taskPriority">
+                                <option value="low">Baixa</option>
+                                <option value="medium" selected>Média</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data de Vencimento *</label>
+                            <input type="date" name="dueDate" id="taskDueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Lead Relacionado</label>
+                            <select name="leadId" id="taskLeadId">
+                                <option value="">Selecione um lead</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea name="description" id="taskDescription" rows="3" placeholder="Descreva os detalhes da tarefa..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Responsável</label>
+                        <select name="assignee" id="taskAssignee">
+                            <option value="João">João</option>
+                            <option value="Maria">Maria</option>
+                            <option value="Carlos">Carlos</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" onclick="submitTask()">Salvar Tarefa</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Container -->
     <div id="notifications" class="notifications-container"></div>
 

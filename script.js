@@ -1178,7 +1178,31 @@ function openEventModal() {
 }
 
 function openTaskModal() {
-    showNotification('Modal de tarefa seria aberto aqui', 'info');
+    // Reset form for new task
+    const form = document.getElementById('taskForm');
+    form.reset();
+    document.getElementById('taskId').value = '';
+    document.getElementById('taskModalTitle').textContent = 'Nova Tarefa';
+
+    // Set default due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('taskDueDate').value = tomorrow.toISOString().split('T')[0];
+
+    // Populate leads dropdown
+    const leadSelect = document.getElementById('taskLeadId');
+    leadSelect.innerHTML = '<option value="">Selecione um lead</option>';
+    leads.forEach(lead => {
+        const option = document.createElement('option');
+        option.value = lead.id;
+        option.textContent = `${lead.name} - ${lead.company}`;
+        leadSelect.appendChild(option);
+    });
+
+    // Set default assignee
+    document.getElementById('taskAssignee').value = 'Maria';
+
+    document.getElementById('taskModal').style.display = 'block';
 }
 
 async function submitLead() {
@@ -1646,6 +1670,78 @@ function addNote(leadId) {
     showNotification(`Adicionando nota para ${lead.name}`, 'info');
 }
 
+async function submitTask() {
+    const form = document.getElementById('taskForm');
+    const formData = new FormData(form);
+    const taskId = formData.get('id');
+
+    const taskData = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        dueDate: formData.get('dueDate'),
+        priority: formData.get('priority'),
+        status: 'pending',
+        leadId: parseInt(formData.get('leadId')) || null,
+        assignee: formData.get('assignee')
+    };
+
+    try {
+        if (taskId) {
+            // Edit existing task
+            const updatedTask = await fetchFromAPI(`/tasks/${taskId}`, {
+                method: 'PUT',
+                body: JSON.stringify({...taskData, id: parseInt(taskId)})
+            });
+
+            // Update local array
+            const taskIndex = tasks.findIndex(t => t.id === parseInt(taskId));
+            if (taskIndex !== -1) {
+                tasks[taskIndex] = {...tasks[taskIndex], ...taskData, id: parseInt(taskId)};
+            }
+
+            await addLog({
+                type: 'task',
+                title: 'Tarefa atualizada',
+                description: `Tarefa "${taskData.title}" foi editada`,
+                user_id: 'Usuário Atual',
+                lead_id: taskData.leadId
+            });
+
+            showNotification('Tarefa atualizada com sucesso!', 'success');
+        } else {
+            // Create new task
+            const newTask = await fetchFromAPI('/tasks', {
+                method: 'POST',
+                body: JSON.stringify(taskData)
+            });
+
+            // Add to local array
+            tasks.push(newTask);
+
+            await addLog({
+                type: 'task',
+                title: 'Nova tarefa criada',
+                description: `Tarefa "${taskData.title}" foi adicionada ao sistema`,
+                user_id: 'Usuário Atual',
+                lead_id: taskData.leadId
+            });
+
+            showNotification('Tarefa criada com sucesso!', 'success');
+        }
+
+        // Re-render tasks list
+        renderTasksList();
+
+        closeModal('taskModal');
+        form.reset();
+        document.getElementById('taskModalTitle').textContent = 'Nova Tarefa';
+
+    } catch (error) {
+        console.error('Erro ao salvar tarefa:', error);
+        showNotification('Erro ao salvar tarefa', 'error');
+    }
+}
+
 // Export functions for global access
 window.toggleTheme = toggleTheme;
 window.openLeadModal = openLeadModal;
@@ -1653,6 +1749,7 @@ window.closeModal = closeModal;
 window.submitLead = submitLead;
 window.submitActivity = submitActivity;
 window.submitNote = submitNote;
+window.submitTask = submitTask;
 window.openLeadDetails = openLeadDetails;
 window.openEventModal = openEventModal;
 window.openTaskModal = openTaskModal;
