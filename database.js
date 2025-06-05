@@ -353,13 +353,19 @@ const api = {
     async createLog(logData) {
         const client = await pool.connect();
         try {
-            const { type, action, details, lead_id, user_id } = logData;
+            const { 
+                type, 
+                action = logData.title, 
+                details = logData.description, 
+                lead_id = logData.leadId || logData.lead_id, 
+                user_id = logData.userId || logData.user_id || 'system' 
+            } = logData;
 
             const result = await client.query(`
                 INSERT INTO logs (type, action, details, lead_id, user_id)
                 VALUES ($1, $2, $3, $4, $5)
                 RETURNING *
-            `, [type, action, details, lead_id, user_id || 'system']);
+            `, [type, action, details, lead_id, user_id]);
 
             return result.rows[0];
         } finally {

@@ -1133,22 +1133,31 @@ async function addLog(logEntry) {
         // Ensure the log entry has the correct field names for the database
         const dbLogEntry = {
             type: logEntry.type,
-            title: logEntry.title,
-            description: logEntry.description,
-            user_id: logEntry.user_id || logEntry.userId,
+            action: logEntry.title || logEntry.action,
+            details: logEntry.description || logEntry.details,
+            user_id: logEntry.user_id || logEntry.userId || 'system',
             lead_id: logEntry.lead_id || logEntry.leadId
         };
 
-        await fetchFromAPI('/logs', {
+        const newLog = await fetchFromAPI('/logs', {
             method: 'POST',
             body: JSON.stringify(dbLogEntry)
         });
 
-        // Recarregar logs
-        logs = await fetchFromAPI('/logs');
-        renderLogsTimeline();
+        // Adicionar o log localmente para exibição imediata
+        if (newLog) {
+            logs.unshift({
+                ...newLog,
+                timestamp: newLog.created_at,
+                title: newLog.action,
+                description: newLog.details,
+                userId: newLog.user_id
+            });
+            renderLogsTimeline();
+        }
     } catch (error) {
         console.error('Erro ao adicionar log:', error);
+        showNotification('Erro ao salvar log', 'error');
         showNotification('Erro ao salvar log', 'error');
     }
 }
@@ -1218,8 +1227,8 @@ async function submitLead() {
 
             await addLog({
                 type: 'lead',
-                title: 'Lead atualizado',
-                description: `Lead ${leadData.name} foi editado`,
+                action: 'Lead atualizado',
+                details: `Lead ${leadData.name} foi editado`,
                 user_id: 'Usuário Atual',
                 lead_id: parseInt(leadId)
             });
@@ -1237,8 +1246,8 @@ async function submitLead() {
 
             await addLog({
                 type: 'lead',
-                title: 'Novo lead criado',
-                description: `Lead ${leadData.name} foi adicionado ao sistema`,
+                action: 'Novo lead criado',
+                details: `Lead ${leadData.name} foi adicionado ao sistema`,
                 user_id: 'Usuário Atual',
                 lead_id: newLead.id
             });
