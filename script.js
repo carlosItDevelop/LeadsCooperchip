@@ -1503,12 +1503,11 @@ async function submitActivity() {
     const lead = leads.find(l => l.id === leadId);
 
     const activity = {
-        leadId: leadId || null,
+        lead_id: leadId || null,
         type: formData.get('type'),
         title: formData.get('title'),
         description: formData.get('description'),
-        datetime: formData.get('datetime'),
-        createdAt: new Date().toISOString()
+        datetime: formData.get('datetime')
     };
 
     try {

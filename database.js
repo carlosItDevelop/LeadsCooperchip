@@ -79,7 +79,7 @@ async function initializeDatabase() {
                 type VARCHAR(50) NOT NULL,
                 title VARCHAR(255) NOT NULL,
                 description TEXT,
-                scheduled_date TIMESTAMP,
+                datetime TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -338,13 +338,15 @@ const api = {
 
     // Activities
     async createActivity(activityData) {
-        const { lead_id, type, title, description, scheduled_date } = activityData;
+        const { leadId, lead_id, type, title, description, datetime, scheduled_date } = activityData;
+        const finalLeadId = leadId || lead_id;
+        const finalDatetime = datetime || scheduled_date;
 
         const result = await pool.query(`
-            INSERT INTO activities (lead_id, type, title, description, scheduled_date)
+            INSERT INTO activities (lead_id, type, title, description, datetime)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *
-        `, [lead_id, type, title, description, scheduled_date]);
+        `, [finalLeadId, type, title, description, finalDatetime]);
 
         return result.rows[0];
     },
