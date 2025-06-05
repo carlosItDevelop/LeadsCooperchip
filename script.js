@@ -234,7 +234,7 @@ async function loadSampleData() {
 // Função para fazer requisições à API
 async function fetchFromAPI(endpoint, options = {}) {
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, {
+        const response = await fetch(API_BASE + endpoint, {
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers

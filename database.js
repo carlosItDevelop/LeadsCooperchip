@@ -223,6 +223,11 @@ const api = {
             responsible, score, temperature, value, notes
         } = leadData;
 
+        // Validate required fields
+        if (!name || !email) {
+            throw new Error('Nome e email são campos obrigatórios');
+        }
+
         const result = await pool.query(`
             UPDATE leads 
             SET name = $1, company = $2, email = $3, phone = $4, position = $5, 
@@ -230,7 +235,11 @@ const api = {
                 temperature = $10, value = $11, notes = $12, updated_at = CURRENT_TIMESTAMP
             WHERE id = $13
             RETURNING *
-        `, [name, company, email, phone, position, source, status, responsible, score, temperature, value, notes, id]);
+        `, [name, company, email, phone, position, source, status, responsible || 'Não definido', score || 50, temperature || 'morno', value || 0, notes, id]);
+
+        if (result.rows.length === 0) {
+            throw new Error('Lead não encontrado');
+        }
 
         return result.rows[0];
     },
