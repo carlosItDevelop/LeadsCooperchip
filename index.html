@@ -6,7 +6,7 @@
     <title>General Lab Solutions - CRM</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.3/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
 </head>
@@ -127,12 +127,12 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <h3>Funil de Leads</h3>
-                    <canvas id="funnelChart"></canvas>
+                    <div id="funnelChart"></div>
                 </div>
 
                 <div class="chart-card">
                     <h3>Leads por Origem</h3>
-                    <canvas id="sourceChart"></canvas>
+                    <div id="sourceChart"></div>
                 </div>
             </div>
 
@@ -326,6 +326,50 @@
                 </button>
             </div>
 
+<<<<<<< HEAD
+            <div class="calendar-container">
+                <!-- Sidebar com eventos pré-definidos -->
+                <div class="calendar-sidebar">
+                    <h3>Atividades Rápidas</h3>
+                    <div class="predefined-events">
+                        <div class="event-template" draggable="true" data-event-type="novo">
+                            <div class="event-color novo"></div>
+                            <div class="event-info">
+                                <span class="event-title">Novo Lead</span>
+                                <span class="event-subtitle">Primeiro contato inicial</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-template" draggable="true" data-event-type="contato">
+                            <div class="event-color contato"></div>
+                            <div class="event-info">
+                                <span class="event-title">Primeiro Contato</span>
+                                <span class="event-subtitle">Ligação ou email inicial</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-template" draggable="true" data-event-type="qualificado">
+                            <div class="event-color qualificado"></div>
+                            <div class="event-info">
+                                <span class="event-title">Qualificação</span>
+                                <span class="event-subtitle">Reunião de qualificação</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-template" draggable="true" data-event-type="proposta">
+                            <div class="event-color proposta"></div>
+                            <div class="event-info">
+                                <span class="event-title">Apresentar Proposta</span>
+                                <span class="event-subtitle">Envio/apresentação</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-template" draggable="true" data-event-type="negociacao">
+                            <div class="event-color negociacao"></div>
+                            <div class="event-info">
+                                <span class="event-title">Negociação</span>
+                                <span class="event-subtitle">Discussão de termos</span>
+=======
             <div class="calendar-layout">
                 <div class="calendar-sidebar">
                     <!-- Eventos do Pipeline -->
@@ -385,19 +429,32 @@
                                     <span class="pipeline-label">Ganho</span>
                                     <span class="pipeline-count" id="pipeline-ganho">0</span>
                                 </div>
+>>>>>>> c05725699305ce853548609181118729df793dec
                             </div>
                         </div>
                     </div>
 
+<<<<<<< HEAD
+                    <!-- Histórico Recente -->
+                    <div class="recent-history">
+                        <h3>Histórico Recente</h3>
+                        <div class="history-list" id="recentHistoryList">
+                            <!-- Histórico será carregado via JavaScript -->
+=======
                     <!-- Eventos Recentes -->
                     <div class="sidebar-section">
                         <h3><i class="fas fa-clock"></i> Eventos Recentes</h3>
                         <div class="recent-events" id="recentEvents">
                             <!-- Eventos serão carregados via JavaScript -->
+>>>>>>> c05725699305ce853548609181118729df793dec
                         </div>
                     </div>
                 </div>
 
+<<<<<<< HEAD
+                <!-- Calendário principal -->
+=======
+>>>>>>> c05725699305ce853548609181118729df793dec
                 <div class="calendar-main">
                     <div id="calendar-widget"></div>
                 </div>
@@ -434,22 +491,22 @@
             <div class="reports-grid">
                 <div class="report-card">
                     <h3>Performance de Vendas</h3>
-                    <canvas id="salesChart"></canvas>
+                    <div id="salesChart"></div>
                 </div>
 
                 <div class="report-card">
                     <h3>Conversão por Vendedor</h3>
-                    <canvas id="conversionChart"></canvas>
+                    <div id="conversionChart"></div>
                 </div>
 
                 <div class="report-card">
                     <h3>Atividades por Período</h3>
-                    <canvas id="activityChart"></canvas>
+                    <div id="activityChart"></div>
                 </div>
 
                 <div class="report-card">
                     <h3>Tempo Médio no Pipeline</h3>
-                    <canvas id="pipelineTimeChart"></canvas>
+                    <div id="pipelineTimeChart"></div>
                 </div>
             </div>
         </section>
@@ -706,6 +763,89 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('newCardModal')">Cancelar</button>
                 <button type="submit" class="btn btn-primary" onclick="submitNewCard()">Criar Lead</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="eventModalTitle">Nova Atividade</h2>
+                <span class="close" onclick="closeModal('eventModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <input type="hidden" name="id" id="eventId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Título *</label>
+                            <input type="text" name="title" id="eventTitle" required placeholder="Ex: Reunião com cliente">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Atividade *</label>
+                            <select name="type" id="eventType" required>
+                                <option value="meeting">Reunião</option>
+                                <option value="call">Ligação</option>
+                                <option value="email">Email</option>
+                                <option value="demo">Demonstração</option>
+                                <option value="follow-up">Follow-up</option>
+                                <option value="task">Tarefa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data de Início *</label>
+                            <input type="datetime-local" name="startDate" id="eventStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data de Término</label>
+                            <input type="datetime-local" name="endDate" id="eventEndDate">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Lead Relacionado</label>
+                            <select name="leadId" id="eventLeadId">
+                                <option value="">Selecione um lead</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Local</label>
+                            <input type="text" name="location" id="eventLocation" placeholder="Ex: Sala de reuniões, Online, etc.">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea name="description" id="eventDescription" rows="3" placeholder="Descreva os detalhes da atividade..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Participantes</label>
+                            <input type="text" name="participants" id="eventParticipants" placeholder="Ex: João, Maria, Cliente">
+                        </div>
+                        <div class="form-group">
+                            <label>Lembrete</label>
+                            <select name="reminder" id="eventReminder">
+                                <option value="">Sem lembrete</option>
+                                <option value="5">5 minutos antes</option>
+                                <option value="15">15 minutos antes</option>
+                                <option value="30">30 minutos antes</option>
+                                <option value="60">1 hora antes</option>
+                                <option value="1440">1 dia antes</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('eventModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" onclick="submitEvent()">Salvar Atividade</button>
             </div>
         </div>
     </div>
